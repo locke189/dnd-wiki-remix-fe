@@ -1,15 +1,49 @@
-import type { MetaFunction } from "@remix-run/node";
+import {
+  json,
+  type LoaderFunctionArgs,
+  type MetaFunction,
+} from '@remix-run/node';
+import { useLoaderData } from '@remix-run/react';
+import { Auth } from '~/lib/auth.server';
+import { readMe } from '@directus/sdk';
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
+    { title: 'New Remix App' },
+    { name: 'description', content: 'Welcome to Remix!' },
   ];
 };
 
-const isUserLoggedIn = false;
+export async function loader({ request }: LoaderFunctionArgs) {
+  const { client, isUserLoggedIn, getRequestHeaders } = await Auth(request);
+
+  if (!isUserLoggedIn || client === null) {
+    return json({ isUserLoggedIn: false });
+  }
+
+  const user = await client.request(
+    readMe({
+      fields: ['*'],
+    })
+  );
+
+  console.log('user', user);
+
+  return json(
+    { isUserLoggedIn: true },
+    {
+      headers: {
+        ...(await getRequestHeaders()),
+      },
+    }
+  );
+}
 
 export default function Index() {
+  const data = useLoaderData<{
+    isUserLoggedIn: boolean;
+  } | null>();
+
   return (
     // navbar
     <>
@@ -23,7 +57,7 @@ export default function Index() {
           <h1 className="text-4xl font-bod">The Realm Record</h1>
         </div>
         <ul className="flex space-x-4">
-          {isUserLoggedIn ? (
+          {data?.isUserLoggedIn ? (
             <>
               <li>
                 <a href="/spells">Spells</a>
