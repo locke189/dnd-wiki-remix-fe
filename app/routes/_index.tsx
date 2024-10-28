@@ -6,6 +6,7 @@ import {
 import { useLoaderData } from '@remix-run/react';
 import { Auth } from '~/lib/auth.server';
 import { readMe } from '@directus/sdk';
+import { NavBar } from '~/containers/navbar';
 
 export const meta: MetaFunction = () => {
   return [
@@ -47,41 +48,7 @@ export default function Index() {
   return (
     // navbar
     <>
-      <nav className="flex justify-between items-center p-4 bg-stone-50 px-8">
-        <div className="flex gap-8 items-center">
-          <img
-            src="/dnd-logo-blk.png"
-            alt="DnD Wiki"
-            className="w-10 h-10 object-cover"
-          ></img>
-          <h1 className="text-4xl font-bod">The Realm Record</h1>
-        </div>
-        <ul className="flex space-x-4">
-          {data?.isUserLoggedIn ? (
-            <>
-              <li>
-                <a href="/spells">Spells</a>
-              </li>
-              <li>
-                <a href="/monsters">Monsters</a>
-              </li>
-              <li>
-                <a href="/items">Items</a>
-              </li>
-              <li>
-                <a href="/logout">Logout</a>
-              </li>
-            </>
-          ) : (
-            <>
-              <li>
-                <a href="/login">Login</a>
-              </li>
-            </>
-          )}
-        </ul>
-        {/* hero component */}
-      </nav>
+      <NavBar isUserLoggedIn={data?.isUserLoggedIn ?? false} />
       <div className="container mx-auto p-4 text-black my-11 rounded-lg bg-stone-200/75 min-h-80 flex justify-between">
         <div className="flex flex-col justify-center w-2/3 p-8">
           <h2 className="text-2xl font-bold">Discover the World of Faerun!</h2>
