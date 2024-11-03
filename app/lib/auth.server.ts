@@ -8,6 +8,7 @@ import {
 } from '@directus/sdk';
 import { redirect } from '@remix-run/react';
 import { commitSession, getSession } from './sessions.server';
+import { c } from 'node_modules/vite/dist/node/types.d-aGj9QkWt';
 
 export const Auth = async (request: Request) => {
   const client = createDirectus(
@@ -60,13 +61,12 @@ export const Auth = async (request: Request) => {
     }
   };
 
-  const handleUnauthenticated = async () => {
+  const handleUnauthenticated = () => {
     session.flash('error', 'You must be logged in to access this page');
-    return redirect('/login', {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
+    session.unset('access_token');
+    session.unset('refresh_token');
+    session.unset('userId');
+    session.unset('expires');
   };
 
   const setClientToken = async () => {
@@ -76,7 +76,7 @@ export const Auth = async (request: Request) => {
       return false;
     }
 
-    client.setToken(token);
+    await client.setToken(token);
     return true;
   };
 
@@ -97,10 +97,11 @@ export const Auth = async (request: Request) => {
       session.unset('error');
 
       await commitSession(session);
-      return;
+      return true;
     } catch (error) {
       console.error(error);
-      return await handleUnauthenticated();
+      await handleUnauthenticated();
+      return false;
     }
   };
 
@@ -133,17 +134,30 @@ export const Auth = async (request: Request) => {
     }
   };
 
-  const isUserLoggedIn = await setClientToken();
+  await setClientToken();
 
-  if (isUserLoggedIn) await refreshClientToken();
+  let user = null;
+
+  try {
+    user = await client.request(
+      readMe({
+        fields: ['*'],
+      })
+    );
+  } catch (error) {
+    console.error(error);
+    await handleUnauthenticated();
+  }
 
   const getRequestHeaders = async () => ({
     'Set-Cookie': await commitSession(session),
   });
 
   return {
-    isUserLoggedIn,
+    isUserLoggedIn: !!user,
+    user,
     getRequestHeaders,
+    refreshClientToken,
     client: 'request' in client ? client : null,
     session,
     login: clientLogin,

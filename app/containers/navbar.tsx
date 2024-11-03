@@ -9,13 +9,17 @@ import {
   navigationMenuTriggerStyle,
 } from '../components/ui/navigation-menu';
 import React from 'react';
-import { Lock, PersonStanding } from 'lucide-react';
+import { PersonStanding } from 'lucide-react';
 
 type NavBarProps = {
   isUserLoggedIn: boolean;
+  players?: { name: string; id: string }[];
 };
 
-export const NavBar: React.FC<NavBarProps> = ({ isUserLoggedIn }) => {
+export const NavBar: React.FC<NavBarProps> = ({
+  isUserLoggedIn,
+  players = [],
+}) => {
   return (
     <nav className="flex justify-between items-center py-4 px-32 bg-stone-50">
       <div className="flex gap-8 items-center">
@@ -52,14 +56,17 @@ export const NavBar: React.FC<NavBarProps> = ({ isUserLoggedIn }) => {
                         </a>
                       </NavigationMenuLink>
                     </li>
-                    <ul>
-                      <li>
-                        <Link to="/players/player-1">Player 1</Link>
-                      </li>
-                      <li>
-                        <Link to="/players/player-2">Player 2</Link>
-                      </li>
-                    </ul>
+                    {players?.length > 0 && (
+                      <ul>
+                        {players?.map((player) => (
+                          <li key={player.id}>
+                            <Link to={`/players/${player.id}`}>
+                              {player.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     {/* <ListItem href="/docs" title="Introduction">
                       Re-usable components built using Radix UI and Tailwind
                       CSS.
