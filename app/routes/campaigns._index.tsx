@@ -3,7 +3,7 @@ import {
   type LoaderFunctionArgs,
   type MetaFunction,
 } from '@remix-run/node';
-import { Link, redirect, useLoaderData } from '@remix-run/react';
+import { redirect, useLoaderData } from '@remix-run/react';
 import { Auth } from '~/lib/auth.server';
 import { readItems } from '@directus/sdk';
 import { commitSession } from '~/lib/sessions.server';
@@ -29,22 +29,24 @@ export async function loader({ request }: LoaderFunctionArgs) {
     });
   }
 
-  const players = await client.request(
-    readItems('Player', {
-      fields: ['name', 'id', 'main_image'],
+  const campaigns = await client.request(
+    readItems('campaigns', {
+      fields: ['name', 'id', 'image'],
     })
   );
 
-  const playersWithImages = players.map((player: any) => {
+  const campaignsWithImages = campaigns.map((campaign: any) => {
     return {
-      ...player,
-      main_image_url: `${process.env.DB_DOMAIN}:${process.env.DB_PORT}/assets/${player.main_image}`,
-      url: `/players/${player.id}`,
+      ...campaign,
+      imageUrl: campaign.Image
+        ? `${process.env.DB_DOMAIN}:${process.env.DB_PORT}/assets/${campaign?.image}`
+        : '',
+      url: `/campaigns/${campaign.id}`,
     };
   });
 
   return json(
-    { isUserLoggedIn: true, players: playersWithImages },
+    { isUserLoggedIn: true, campaigns: campaignsWithImages },
     {
       headers: {
         ...(await getRequestHeaders()),
@@ -56,11 +58,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function Index() {
   const data = useLoaderData<{
     isUserLoggedIn: boolean;
-    players: {
+    campaigns: {
       name: string;
       id: string;
-      main_image: string;
-      main_image_url: string;
+      image: string;
+      imageUrl: string;
       url: string;
     }[];
   } | null>();
@@ -69,11 +71,11 @@ export default function Index() {
     // navbar
     <ImageList
       title="Players"
-      data={data?.players.map((player) => ({
-        id: player.id,
-        imageUrl: player.main_image_url,
-        name: player.name,
-        url: player.url,
+      data={data?.campaigns.map((campaign) => ({
+        id: campaign.id,
+        imageUrl: campaign.imageUrl,
+        name: campaign.name,
+        url: campaign.url,
       }))}
     />
   );

@@ -13,6 +13,9 @@ import './tailwind.css';
 import { Auth } from './lib/auth.server';
 import { readItems, readMe } from '@directus/sdk';
 import { NavBar } from './containers/navbar';
+import SidebarLayout from './containers/sidabarLayout';
+import { useContext, useState } from 'react';
+import { AppContext } from './context/app.context';
 
 export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -50,12 +53,51 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const players = await client.request(
     readItems('Player', {
+      fields: ['name', 'id', 'campaigns.campaigns_id'],
+    })
+  );
+
+  const sessions = await client.request(
+    readItems('sessions', {
+      fields: ['name', 'id', 'date', 'campaign'],
+    })
+  );
+
+  const npcs = await client.request(
+    readItems('Npc', {
+      fields: ['name', 'id', 'campaigns.campaigns_id'],
+    })
+  );
+
+  const locations = await client.request(
+    readItems('Locations', {
+      fields: [
+        'name',
+        'id',
+        'parent_location',
+        'Locations',
+        'campaigns.campaigns_id',
+        'type',
+      ],
+    })
+  );
+
+  const campaigns = await client.request(
+    readItems('campaigns', {
       fields: ['name', 'id'],
     })
   );
 
   return json(
-    { isUserLoggedIn: true, players, user },
+    {
+      isUserLoggedIn: true,
+      players,
+      user,
+      sessions,
+      locations,
+      campaigns,
+      npcs,
+    },
     {
       headers: {
         ...(await getRequestHeaders()),
@@ -72,6 +114,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       id: string;
     };
   } | null>();
+  const [selectedCampaignId, setSelectedCampaignId] = useState<number>(2);
 
   return (
     <html lang="en">
@@ -83,11 +126,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {/* layout */}
-        <NavBar
-          isUserLoggedIn={data?.isUserLoggedIn ?? false}
-          players={data?.players}
-        />
-        {children}
+        <AppContext.Provider
+          value={{
+            selectedCampaignId,
+            setSelectedCampaignId,
+          }}
+        >
+          {!data?.isUserLoggedIn ? (
+            <>
+              <NavBar isUserLoggedIn={data?.isUserLoggedIn ?? false} />
+              {children}
+            </>
+          ) : (
+            <SidebarLayout>{children}</SidebarLayout>
+          )}
+        </AppContext.Provider>
         <ScrollRestoration />
         <Scripts />
       </body>

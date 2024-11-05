@@ -3,9 +3,9 @@ import {
   type LoaderFunctionArgs,
   type MetaFunction,
 } from '@remix-run/node';
-import { Link, redirect, useLoaderData } from '@remix-run/react';
+import { redirect, useLoaderData } from '@remix-run/react';
 import { Auth } from '~/lib/auth.server';
-import { readItem, readItems } from '@directus/sdk';
+import { readItem } from '@directus/sdk';
 import { commitSession } from '~/lib/sessions.server';
 import {
   Accordion,
@@ -36,21 +36,21 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     });
   }
 
-  const player = await client.request(
-    readItem('Player', id, {
+  const campaign = await client.request(
+    readItem('campaigns', id, {
       fields: ['*'],
     })
   );
 
-  console.log('player', player);
-
-  const playerWithImages = {
-    ...player,
-    main_image_url: `${process.env.DB_DOMAIN}:${process.env.DB_PORT}/assets/${player.main_image}`,
+  const campaignWithImages = {
+    ...campaign,
+    imageUrl: campaign.image
+      ? `${process.env.DB_DOMAIN}:${process.env.DB_PORT}/assets/${campaign?.image}`
+      : '',
   };
 
   return json(
-    { isUserLoggedIn: true, player: playerWithImages },
+    { isUserLoggedIn: true, campaign: campaignWithImages },
     {
       headers: {
         ...(await getRequestHeaders()),
@@ -62,22 +62,16 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 export default function Index() {
   const data = useLoaderData<{
     isUserLoggedIn: boolean;
-    player: {
+    campaign: {
       name: string;
       id: string;
-      main_image?: string;
-      main_image_url?: string;
-      age?: string;
-      class?: string;
-      race?: string;
-      background_story?: string;
-      plot?: string;
+      image?: string;
+      imageUrl?: string;
+      description?: string;
     };
   } | null>();
 
-  console.log('this data', data, data?.player?.secrets);
-
-  const { player } = data || {};
+  const { campaign } = data || {};
 
   return (
     // navbar
@@ -87,30 +81,21 @@ export default function Index() {
           <div className="overflow-hidden h-40 x-40 rounded-full">
             <img
               className="object-cover h-40 x-40 radius-lg"
-              src={player?.main_image_url}
-              alt={player?.name}
+              src={campaign?.imageUrl}
+              alt={campaign?.name}
             />
           </div>
           <div className="flex flex-col gap-4 justify-center">
-            <h1 className="text-5xl font-bold">{player?.name}</h1>
-            <p className="text-2xl font-bold">
-              {player?.race} - {player?.class}
-            </p>
+            <h1 className="text-5xl font-bold">{campaign?.name}</h1>
           </div>
         </div>
       </header>
       <section className="container mx-auto my-8 grid grid-cols-12 gap-8">
         <main className="col-span-8">
-          {player?.background_story && (
+          {campaign?.description && (
             <article className="container mx-auto my-8">
               <h2 className="text-xl font-bold my-4">Background Story</h2>
-              <p className="text-base">{player?.background_story}</p>
-            </article>
-          )}
-          {player?.plot && (
-            <article className="container mx-auto my-8">
-              <h2 className="text-xl font-bold my-4">DM ONLY: Plot</h2>
-              <p className="text-base">{player?.plot}</p>
+              <p className="text-base">{campaign?.description}</p>
             </article>
           )}
         </main>
