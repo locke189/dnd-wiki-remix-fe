@@ -8,6 +8,7 @@ import { Auth } from '~/lib/auth.server';
 import { readItems } from '@directus/sdk';
 import { commitSession } from '~/lib/sessions.server';
 import { ImageList } from '~/components/image-list';
+import { TPlayer } from '~/types/player';
 
 export const meta: MetaFunction = () => {
   return [
@@ -31,15 +32,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const players = await client.request(
     readItems('Player', {
-      fields: ['name', 'id', 'main_image'],
+      fields: ['*'],
     })
   );
 
-  const playersWithImages = players.map((player: any) => {
+  const playersWithImages = players.map((player) => {
     return {
       ...player,
-      main_image_url: `${process.env.DB_DOMAIN}:${process.env.DB_PORT}/assets/${player.main_image}`,
-      url: `/players/${player.id}`,
+      main_image: `${process.env.DB_DOMAIN}:${process.env.DB_PORT}/assets/${player.main_image}`,
     };
   });
 
@@ -56,13 +56,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function Index() {
   const data = useLoaderData<{
     isUserLoggedIn: boolean;
-    players: {
-      name: string;
-      id: string;
-      main_image: string;
-      main_image_url: string;
-      url: string;
-    }[];
+    players: TPlayer[];
   } | null>();
 
   return (
@@ -71,9 +65,9 @@ export default function Index() {
       title="Players"
       data={data?.players.map((player) => ({
         id: player.id,
-        imageUrl: player.main_image_url,
+        imageUrl: player.main_image,
         name: player.name,
-        url: player.url,
+        url: `/players/${player.id}`,
       }))}
     />
   );
