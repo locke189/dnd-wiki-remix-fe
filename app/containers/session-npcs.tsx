@@ -20,32 +20,41 @@ import {
 } from '~/components/ui/table';
 import {
   ColumnDef,
+  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
   OnChangeFn,
   RowSelectionState,
   useReactTable,
 } from '@tanstack/react-table';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
-import { TPlayer } from '~/types/player';
 import { TSession } from '~/types/session';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Checkbox } from '~/components/ui/checkbox';
+import { TNpc } from '~/types/npc';
+import { Input } from '~/components/ui/input';
 
-type TSessionPlayersProps = {
+type TSessionNpcsProps = {
   gameSession?: TSession;
-  players?: TPlayer[];
+  npcs?: TNpc[];
   rowSelection: RowSelectionState;
   setRowSelection: OnChangeFn<RowSelectionState>;
 };
 
-export const SessionPlayers: React.FC<TSessionPlayersProps> = ({
-  players,
+export const SessionNpcs: React.FC<TSessionNpcsProps> = ({
+  npcs,
   gameSession,
   rowSelection,
   setRowSelection,
 }) => {
-  const columns: ColumnDef<TPlayer>[] = [
+  const [pagination, setPagination] = useState({
+    pageIndex: 0, //initial page index
+    pageSize: 5, //default page size
+  });
+
+  const columns: ColumnDef<TNpc>[] = [
     {
       id: 'select',
       header: ({ table }) => (
@@ -102,35 +111,44 @@ export const SessionPlayers: React.FC<TSessionPlayersProps> = ({
     },
   ];
 
-  const playersInCampaign = useMemo(
+  const npcsInCampaign = useMemo(
     () =>
-      players?.filter((player) =>
-        player.campaigns.some(
+      npcs?.filter((npc) =>
+        npc.campaigns.some(
           (campaign) => campaign.campaigns_id === gameSession?.campaign
         )
       ),
-    [players, gameSession]
+    [npcs, gameSession]
   );
 
   const getInitialRowSelection = useCallback(() => {
     const selection: { [key: number]: boolean } = {};
-    playersInCampaign?.forEach((player, index) => {
-      if (gameSession?.players.some((p) => p.Player_id === player.id)) {
+    npcsInCampaign?.forEach((npc, index) => {
+      if (gameSession?.Npcs.some((n) => n.Npc_id === npc.id)) {
         selection[index] = true;
       }
     });
     return selection;
-  }, [gameSession, playersInCampaign]);
+  }, [gameSession, npcsInCampaign]);
 
   // const [rowSelection, setRowSelection] = useState(getInitialRowSelection());
 
-  const table = useReactTable<TPlayer>({
-    data: playersInCampaign ?? [],
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+  const table = useReactTable<TNpc>({
+    data: npcsInCampaign ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     onRowSelectionChange: setRowSelection,
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange: setPagination,
+    globalFilterFn: 'includesString',
     state: {
       rowSelection,
+      columnFilters,
+      pagination,
     },
   });
 
@@ -140,17 +158,25 @@ export const SessionPlayers: React.FC<TSessionPlayersProps> = ({
 
   return (
     <>
-      <Dialog>
+      <Dialog onOpenChange={() => table.setGlobalFilter('')}>
         <DialogTrigger asChild>
-          <Button variant="outline">Choose Players</Button>
+          <Button variant="outline">Choose NPCs</Button>
         </DialogTrigger>
         <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle>Choose Players</DialogTitle>
             <DialogDescription>
-              Select the players that were present in this session
+              Select the NPCs in this session
             </DialogDescription>
           </DialogHeader>
+          <div className="flex items-center py-4">
+            <Input
+              placeholder="Filter..."
+              value={table.globalFilter}
+              onChange={(e) => table.setGlobalFilter(String(e.target.value))}
+              className="max-w-sm"
+            />
+          </div>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -200,6 +226,24 @@ export const SessionPlayers: React.FC<TSessionPlayersProps> = ({
                 )}
               </TableBody>
             </Table>
+            <div className="flex items-center justify-end space-x-2 py-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                Next
+              </Button>
+            </div>
           </div>
           <DialogFooter className="sm:justify-start">
             <DialogClose asChild>
@@ -211,9 +255,9 @@ export const SessionPlayers: React.FC<TSessionPlayersProps> = ({
         </DialogContent>
       </Dialog>
       <p className="mt-3">
-        Selected Players:{' '}
+        Selected Npcs:{' '}
         {Object.keys(rowSelection)
-          .map((index) => playersInCampaign?.[index].name)
+          .map((index) => npcsInCampaign?.[index].name)
           .join(', ')}
       </p>
     </>

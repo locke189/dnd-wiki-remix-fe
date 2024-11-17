@@ -13,6 +13,8 @@ import { SessionPage } from '~/pages/session-page';
 import { getImageUrl } from '~/lib/utils';
 import { TSession } from '~/types/session';
 import { TPlayer } from '~/types/player';
+import { TNpc } from '~/types/npc';
+import { TLocation } from '~/types/location';
 
 export const meta: MetaFunction = () => {
   return [
@@ -38,13 +40,25 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   const gameSession = await client.request(
     readItem('sessions', id, {
-      fields: ['*', 'players.*'],
+      fields: ['*', 'players.*', 'Npcs.*', 'Locations.*'],
+    })
+  );
+
+  const npcs = await client.request(
+    readItems('Npc', {
+      fields: ['*', 'campaigns.*'],
     })
   );
 
   const players = await client.request(
     readItems('Player', {
       fields: ['*', 'campaigns.*'],
+    })
+  );
+
+  const locations = await client.request(
+    readItems('Locations', {
+      fields: ['*', 'campaigns.*', 'Locations.*'],
     })
   );
 
@@ -55,6 +69,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       players: players.map((player) => ({
         ...player,
         main_image: getImageUrl(player.main_image),
+      })),
+      npcs: npcs.map((npc) => ({
+        ...npc,
+        main_image: getImageUrl(npc.main_image),
+      })),
+      locations: locations.map((location) => ({
+        ...location,
+        main_image: getImageUrl(location.main_image),
       })),
     },
     {
@@ -82,16 +104,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   const data = JSON.parse(String(body.get('data')));
-  console.log(data);
 
   const gameSession = await client.request(
     updateItem('sessions', id, data as object)
   );
 
-  console.log(gameSession);
-
   return json(
-    { data: 'Action Triggered' },
+    { data: gameSession },
     {
       headers: {
         ...(await getRequestHeaders()),
@@ -106,11 +125,21 @@ export default function Index() {
     isUserLoggedIn: boolean;
     gameSession: TSession;
     players?: TPlayer[];
+    npcs?: TNpc[];
+    locations?: TLocation[];
   }>();
 
-  const { gameSession, players } = data || {};
+  console.log('data', data);
+
+  const { gameSession, players, npcs, locations } = data || {};
   return (
     // navbar
-    <SessionPage gameSession={gameSession} key={id} players={players} />
+    <SessionPage
+      gameSession={gameSession}
+      key={id}
+      players={players}
+      npcs={npcs}
+      locations={locations}
+    />
   );
 }

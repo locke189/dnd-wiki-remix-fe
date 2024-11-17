@@ -27,18 +27,31 @@ import {
 import { SessionPlayers } from '~/containers/session-players';
 import { TPlayer } from '~/types/player';
 import { TSession } from '~/types/session';
+import { LAYOUT_PAGE_HEADER_PORTAL_ID } from '~/models/global';
+import { Portal } from '~/components/portal';
+import { TNpc } from '~/types/npc';
+import { SessionNpcs } from '~/containers/session-npcs';
+import { TLocation } from '~/types/location';
+import { SessionLocations } from '~/containers/session-locations';
 
 type TSessionPageProps = {
   gameSession?: TSession;
   players?: TPlayer[];
+  npcs?: TNpc[];
+  locations?: TLocation[];
 };
 
 export const SessionPage: React.FC<TSessionPageProps> = ({
   gameSession,
   players,
+  npcs,
+  locations,
 }) => {
   const [sumbitted, setSubmitted] = React.useState(false);
-  const [rowSelection, setRowSelection] = React.useState({});
+  const [rowSelectionPlayers, setRowSelectionPlayers] = React.useState({});
+  const [rowSelectionNpcs, setRowSelectionNpcs] = React.useState({});
+  const [rowSelectionLocations, setRowSelectionLocations] = React.useState({});
+
   const [isEditing, setIsEditing] = React.useState(false);
 
   const fetcher = useFetcher();
@@ -72,21 +85,42 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
     gameSession?.players?.find((p) => p.Player_id === player.id)
   );
 
+  const npcsInSession = npcs?.filter((npc) =>
+    gameSession?.Npcs?.find((n) => n.Npc_id === npc.id)
+  );
+
+  const locationsInSession = locations?.filter((location) =>
+    gameSession?.Locations?.find((l) => l.Locations_id === location.id)
+  );
+
   const selectedPlayers = players
     ?.filter((player, index) =>
-      Object.keys(rowSelection).includes(String(index))
+      Object.keys(rowSelectionPlayers).includes(String(index))
     )
     .map((player) => ({ Player_id: player.id }));
-  console.log('Selected Players', selectedPlayers);
+
+  const selectedNpcs = npcs
+    ?.filter((npc, index) =>
+      Object.keys(rowSelectionNpcs).includes(String(index))
+    )
+    .map((npc) => ({ Npc_id: npc.id }));
+
+  const selectedLocations = locations
+    ?.filter((location) =>
+      gameSession?.Locations?.some((l) => l.Locations_id === location.id)
+    )
+    .map((location) => ({ Locations_id: location.id }));
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log('Submitting');
     setSubmitted(true);
-
-    console.log(JSON.stringify({ players: selectedPlayers }));
     fetcher.submit(
       {
-        data: JSON.stringify({ ...values, players: selectedPlayers }),
+        data: JSON.stringify({
+          ...values,
+          players: selectedPlayers,
+          Npcs: selectedNpcs,
+          Locations: selectedLocations,
+        }),
       },
       {
         method: 'POST',
@@ -96,7 +130,6 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
 
   useEffect(() => {
     if (fetcher.state === 'idle' && sumbitted) {
-      console.log(fetcher.data);
       setSubmitted(false);
     }
   }, [fetcher.state, fetcher.data, sumbitted]);
@@ -154,13 +187,13 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                     <SessionPlayers
                       players={players}
                       gameSession={gameSession}
-                      rowSelection={rowSelection}
-                      setRowSelection={setRowSelection}
+                      rowSelection={rowSelectionPlayers}
+                      setRowSelection={setRowSelectionPlayers}
                     />
                   ) : (
                     <div className="flex flex-col gap-2">
                       <h2 className="text-lg font-bold">Players</h2>
-                      <ul className="flex flex-row gap-2">
+                      <ul className="flex flex-row gap-2 flex-wrap">
                         {playersInSession?.map((player) => (
                           <li key={player.id}>
                             <Link to={`/player/${player.id}`}>
@@ -190,18 +223,91 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                   )}
                 </CardDescription>
               </Card>
-              <Card className=" rounded-xl bg-muted/50 flex items-center relative h-full"></Card>
-              <Card className=" rounded-xl bg-muted/50 h-full">
-                <Button
-                  onClick={() => {
-                    setIsEditing(!isEditing);
-                    isEditing && form.handleSubmit(onSubmit)();
-                  }}
-                  type="button"
-                >
-                  {isEditing ? 'Save' : 'Edit'}
-                </Button>
-                {/* <Button type="submit">Save</Button> */}
+              <Card className=" rounded-xl bg-muted/50 flex relative h-full">
+                <CardDescription className="px-6 pb-6 py-6">
+                  {isEditing ? (
+                    <SessionNpcs
+                      {...{
+                        npcs,
+                        gameSession,
+                        rowSelection: rowSelectionNpcs,
+                        setRowSelection: setRowSelectionNpcs,
+                      }}
+                    />
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      <h2 className="text-lg font-bold">NPCs</h2>
+                      <ul className="flex flex-row gap-2 flex-wrap">
+                        {npcsInSession?.map((npc) => (
+                          <li key={npc.id}>
+                            <Link to={`/npc/${npc.id}`}>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Avatar>
+                                      <AvatarImage src={npc.main_image} />
+                                      <AvatarFallback>
+                                        {npc.name
+                                          .split(' ')
+                                          .map((n) => n[0])
+                                          .join('')}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{npc.name}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardDescription>
+              </Card>
+              <Card className=" rounded-xl bg-muted/50 flex relative h-full">
+                <CardDescription className="px-6 pb-6 py-6">
+                  {isEditing ? (
+                    <SessionLocations
+                      locations={locations}
+                      gameSession={gameSession}
+                      rowSelection={rowSelectionLocations}
+                      setRowSelection={setRowSelectionLocations}
+                    />
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      <h2 className="text-lg font-bold">Locations</h2>
+                      <ul className="flex flex-row gap-2 flex-wrap">
+                        {locationsInSession?.map((location) => (
+                          <li key={location.id}>
+                            <Link to={`/location/${location.id}`}>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Avatar>
+                                      <AvatarImage src={location.main_image} />
+                                      <AvatarFallback>
+                                        {location.name
+                                          .split(' ')
+                                          .map((n) => n[0])
+                                          .join('')}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{location.name}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardDescription>
               </Card>
             </div>
             <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-8">
@@ -271,6 +377,17 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
               />
             </div>
           </div>
+          <Portal portalId={LAYOUT_PAGE_HEADER_PORTAL_ID}>
+            <Button
+              onClick={() => {
+                setIsEditing(!isEditing);
+                isEditing && form.handleSubmit(onSubmit)();
+              }}
+              type="button"
+            >
+              {isEditing ? 'Save' : 'Edit'}
+            </Button>
+          </Portal>
         </form>
       </Form>
     </>

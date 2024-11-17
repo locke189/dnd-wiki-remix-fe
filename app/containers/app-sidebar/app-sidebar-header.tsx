@@ -26,8 +26,6 @@ export const AppSidebarHeader: React.FC = () => {
     (campaign) => campaign.id === context?.selectedCampaignId
   );
 
-  console.log('campaigns', campaigns);
-
   return (
     campaigns?.length > 0 && (
       <SidebarHeader className="py-2">

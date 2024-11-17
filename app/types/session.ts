@@ -10,4 +10,10 @@ export type TSession = {
   players: {
     Player_id: number;
   }[];
+  Npcs: {
+    Npc_id: number;
+  }[];
+  Locations: {
+    Locations_id: number;
+  }[];
 };

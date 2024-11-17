@@ -34,6 +34,9 @@ import {
   SidebarMenuSubItem,
 } from '~/components/ui/sidebar';
 import { AppContext } from '~/context/app.context';
+import { mapLocationTypeToIcon } from '~/lib/locations';
+import { TLocationType } from '~/types/location';
+import { TNpc } from '~/types/npc';
 
 export type TSession = {
   id: number;
@@ -48,25 +51,6 @@ export type TPlayer = {
   campaigns: { campaigns_id: number }[];
 };
 
-export type TNPC = {
-  id: number;
-  name: string;
-  campaigns: { campaigns_id: number }[];
-};
-
-export type TLocationType =
-  | 'plane'
-  | 'realm'
-  | 'island'
-  | 'region'
-  | 'ship'
-  | 'city'
-  | 'town'
-  | 'inn_tavern_shop'
-  | 'temple_shrine'
-  | 'dungeon_cave'
-  | 'place_road';
-
 export type TLocation = {
   id: number;
   name: string;
@@ -79,7 +63,7 @@ export type TLocation = {
 export type TAppSidebarContentProps = {
   sessions: TSession[];
   players: TPlayer[];
-  npcs: TNPC[];
+  npcs: TNpc[];
   locations: TLocation[];
 };
 
@@ -107,35 +91,6 @@ export const AppSidebarContent: React.FC = () => {
       )
     )
     .sort((a, b) => (a.name > b.name ? 1 : -1));
-
-  const mapLocationTypeToIcon = (type: TLocationType) => {
-    switch (type) {
-      case 'plane':
-        return <Sparkles />;
-      case 'realm':
-        return <Blend />;
-      case 'island':
-        return <TreePalm />;
-      case 'region':
-        return <LandPlot />;
-      case 'ship':
-        return <Sailboat />;
-      case 'city':
-        return <Hotel />;
-      case 'town':
-        return <House />;
-      case 'inn_tavern_shop':
-        return <UtensilsCrossed />;
-      case 'temple_shrine':
-        return <Church />;
-      case 'dungeon_cave':
-        return <Swords />;
-      case 'place_road':
-        return <Mountain />;
-      default:
-        return <Map />;
-    }
-  };
 
   const getLocationsDom: (parent: null | number) => ReactNode = (
     parent = null

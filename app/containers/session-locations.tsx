@@ -20,32 +20,48 @@ import {
 } from '~/components/ui/table';
 import {
   ColumnDef,
+  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
   OnChangeFn,
   RowSelectionState,
   useReactTable,
 } from '@tanstack/react-table';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
-import { TPlayer } from '~/types/player';
 import { TSession } from '~/types/session';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Checkbox } from '~/components/ui/checkbox';
+import { Input } from '~/components/ui/input';
+import { TLocation, TLocationType } from '~/types/location';
+import { getLocationTypeData } from '~/lib/locations';
+import {
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '~/components/ui/tooltip';
+import { Tooltip } from '@radix-ui/react-tooltip';
 
-type TSessionPlayersProps = {
+type TSessionLocationsProps = {
   gameSession?: TSession;
-  players?: TPlayer[];
+  locations?: TLocation[];
   rowSelection: RowSelectionState;
   setRowSelection: OnChangeFn<RowSelectionState>;
 };
 
-export const SessionPlayers: React.FC<TSessionPlayersProps> = ({
-  players,
+export const SessionLocations: React.FC<TSessionLocationsProps> = ({
+  locations,
   gameSession,
   rowSelection,
   setRowSelection,
 }) => {
-  const columns: ColumnDef<TPlayer>[] = [
+  const [pagination, setPagination] = useState({
+    pageIndex: 0, //initial page index
+    pageSize: 5, //default page size
+  });
+
+  const columns: ColumnDef<TLocation>[] = [
     {
       id: 'select',
       header: ({ table }) => (
@@ -93,44 +109,93 @@ export const SessionPlayers: React.FC<TSessionPlayersProps> = ({
       header: 'Name',
     },
     {
-      accessorKey: 'class',
-      header: 'Class',
+      accessorKey: 'type',
+      header: 'Type',
+      cell: ({ row }) => {
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <span>{getLocationTypeData(row.getValue('type')).icon}</span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{getLocationTypeData(row.getValue('type')).name}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      },
     },
     {
-      accessorKey: 'race',
-      header: 'Race',
+      accessorKey: 'parent_location',
+      header: 'Parent Location',
+      cell: ({ row }) => {
+        const parentLocation = locations?.find(
+          (location) => location.id === row.getValue('parent_location')
+        );
+
+        return parentLocation ? (
+          <span>{parentLocation.name}</span>
+        ) : (
+          <span>None</span>
+        );
+      },
+    },
+    {
+      accessorKey: 'Locations',
+      header: 'Sub Locations',
+      cell: ({ row }) => {
+        const subLocations: TLocation[] = row.getValue('Locations');
+
+        return subLocations.length ? (
+          <span className="truncate">
+            {subLocations.map((sl) => sl.name).join(', ')}
+          </span>
+        ) : (
+          <span>None</span>
+        );
+      },
     },
   ];
 
-  const playersInCampaign = useMemo(
+  const locationsInCampaign = useMemo(
     () =>
-      players?.filter((player) =>
-        player.campaigns.some(
+      locations?.filter((location) =>
+        location.campaigns.some(
           (campaign) => campaign.campaigns_id === gameSession?.campaign
         )
       ),
-    [players, gameSession]
+    [locations, gameSession]
   );
 
   const getInitialRowSelection = useCallback(() => {
     const selection: { [key: number]: boolean } = {};
-    playersInCampaign?.forEach((player, index) => {
-      if (gameSession?.players.some((p) => p.Player_id === player.id)) {
+    locationsInCampaign?.forEach((location, index) => {
+      if (gameSession?.Locations.some((n) => n.Locations_id === location.id)) {
         selection[index] = true;
       }
     });
     return selection;
-  }, [gameSession, playersInCampaign]);
+  }, [gameSession, locationsInCampaign]);
 
   // const [rowSelection, setRowSelection] = useState(getInitialRowSelection());
 
-  const table = useReactTable<TPlayer>({
-    data: playersInCampaign ?? [],
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+  const table = useReactTable<TLocation>({
+    data: locationsInCampaign ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     onRowSelectionChange: setRowSelection,
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange: setPagination,
+    globalFilterFn: 'includesString',
     state: {
       rowSelection,
+      columnFilters,
+      pagination,
     },
   });
 
@@ -140,17 +205,25 @@ export const SessionPlayers: React.FC<TSessionPlayersProps> = ({
 
   return (
     <>
-      <Dialog>
+      <Dialog onOpenChange={() => table.setGlobalFilter('')}>
         <DialogTrigger asChild>
-          <Button variant="outline">Choose Players</Button>
+          <Button variant="outline">Choose locations</Button>
         </DialogTrigger>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-fit">
           <DialogHeader>
-            <DialogTitle>Choose Players</DialogTitle>
+            <DialogTitle>Choose Locations</DialogTitle>
             <DialogDescription>
-              Select the players that were present in this session
+              Select the locations in this session
             </DialogDescription>
           </DialogHeader>
+          <div className="flex items-center py-4">
+            <Input
+              placeholder="Filter..."
+              value={table.globalFilter}
+              onChange={(e) => table.setGlobalFilter(String(e.target.value))}
+              className="max-w-sm"
+            />
+          </div>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -200,6 +273,24 @@ export const SessionPlayers: React.FC<TSessionPlayersProps> = ({
                 )}
               </TableBody>
             </Table>
+            <div className="flex items-center justify-end space-x-2 py-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                Next
+              </Button>
+            </div>
           </div>
           <DialogFooter className="sm:justify-start">
             <DialogClose asChild>
@@ -211,9 +302,9 @@ export const SessionPlayers: React.FC<TSessionPlayersProps> = ({
         </DialogContent>
       </Dialog>
       <p className="mt-3">
-        Selected Players:{' '}
+        Selected Locations:{' '}
         {Object.keys(rowSelection)
-          .map((index) => playersInCampaign?.[index].name)
+          .map((index) => locationsInCampaign?.[index].name)
           .join(', ')}
       </p>
     </>
