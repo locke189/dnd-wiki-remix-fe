@@ -63,7 +63,7 @@ export const NewLocation: React.FC<TNewLocationProps> = ({ children }) => {
 
   const [selectedImageId, setSelectedImageId] = useState('0');
   const [chooseImage, setChooseImage] = useState(false);
-  const [imageFilters, setImageFilters] = useState<string[]>([]);
+  const [imageFilters, setImageFilters] = useState<string[]>(['location']);
 
   // TODO: move this to the context
   const data = useLoaderData();
@@ -135,7 +135,7 @@ export const NewLocation: React.FC<TNewLocationProps> = ({ children }) => {
   const onFormChange = () => {
     const selectedType = form.getValues('type');
     // update filters if values are not empty
-    setImageFilters([selectedType ?? ''].filter(Boolean));
+    setImageFilters([selectedType ?? '', 'location'].filter(Boolean));
   };
 
   const filteredImages = images.filter((image) => {

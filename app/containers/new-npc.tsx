@@ -49,7 +49,7 @@ export const NewNpc: React.FC<TNewNpc> = ({ children }) => {
 
   const [selectedImageId, setSelectedImageId] = useState('0');
   const [chooseImage, setChooseImage] = useState(false);
-  const [imageFilters, setImageFilters] = useState<string[]>([]);
+  const [imageFilters, setImageFilters] = useState<string[]>(['npc']);
 
   const data = useLoaderData();
   const images = data.images as TImage[];
@@ -127,7 +127,9 @@ export const NewNpc: React.FC<TNewNpc> = ({ children }) => {
     const selectedGender = form.getValues('gender');
     const selectedRace = form.getValues('race');
     // update filters if values are not empty
-    setImageFilters([selectedGender ?? '', selectedRace ?? ''].filter(Boolean));
+    setImageFilters(
+      [selectedGender ?? '', selectedRace ?? '', 'npc'].filter(Boolean)
+    );
   };
 
   const filteredImages = images.filter((image) => {
