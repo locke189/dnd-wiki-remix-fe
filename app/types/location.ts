@@ -11,10 +11,28 @@ export type TLocationType =
   | 'dungeon_cave'
   | 'place_road';
 
+/*
+  [
+    {
+        "id": 1,
+        "campaigns_id": 2,
+        "Locations_id": 1
+    },
+    {
+        "id": 2,
+        "campaigns_id": 1,
+        "Locations_id": 1
+    }
+]
+
+  */
+
 export type TLocation = {
   id: number;
+  status: 'draft' | 'published' | 'archived';
   name: string;
   type: TLocationType;
+  image: string;
   main_image: string;
   description: string;
   master_notes: string;

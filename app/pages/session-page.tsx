@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Link, useFetcher } from '@remix-run/react';
 
 import {
@@ -93,21 +93,51 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
     gameSession?.Locations?.find((l) => l.Locations_id === location.id)
   );
 
-  const selectedPlayers = players
+  const playersInCampaign = useMemo(
+    () =>
+      players?.filter((player) =>
+        player.campaigns.some(
+          (campaign) => campaign.campaigns_id === gameSession?.campaign
+        )
+      ),
+    [players, gameSession]
+  );
+
+  const selectedPlayers = playersInCampaign
     ?.filter((player, index) =>
       Object.keys(rowSelectionPlayers).includes(String(index))
     )
     .map((player) => ({ Player_id: player.id }));
 
-  const selectedNpcs = npcs
+  const npcsInCampaign = useMemo(
+    () =>
+      npcs?.filter((npc) =>
+        npc.campaigns.some(
+          (campaign) => campaign.campaigns_id === gameSession?.campaign
+        )
+      ),
+    [npcs, gameSession]
+  );
+
+  const selectedNpcs = npcsInCampaign
     ?.filter((npc, index) =>
       Object.keys(rowSelectionNpcs).includes(String(index))
     )
     .map((npc) => ({ Npc_id: npc.id }));
 
-  const selectedLocations = locations
-    ?.filter((location) =>
-      gameSession?.Locations?.some((l) => l.Locations_id === location.id)
+  const locationsInCampaign = useMemo(
+    () =>
+      locations?.filter((location) =>
+        location.campaigns.some(
+          (campaign) => campaign.campaigns_id === gameSession?.campaign
+        )
+      ),
+    [locations, gameSession]
+  );
+
+  const selectedLocations = locationsInCampaign
+    ?.filter((location, index) =>
+      Object.keys(rowSelectionLocations).includes(String(index))
     )
     .map((location) => ({ Locations_id: location.id }));
 

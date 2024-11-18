@@ -35,6 +35,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Checkbox } from '~/components/ui/checkbox';
 import { TNpc } from '~/types/npc';
 import { Input } from '~/components/ui/input';
+import { Plus } from 'lucide-react';
+import { NewNpc } from './new-npc';
 
 type TSessionNpcsProps = {
   gameSession?: TSession;
@@ -164,20 +166,25 @@ export const SessionNpcs: React.FC<TSessionNpcsProps> = ({
         </DialogTrigger>
         <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle>Choose Players</DialogTitle>
+            <DialogTitle>Choose NPCs</DialogTitle>
             <DialogDescription>
               Select the NPCs in this session
             </DialogDescription>
           </DialogHeader>
-          <div className="flex items-center py-4">
-            <Input
-              placeholder="Filter..."
-              value={table.globalFilter}
-              onChange={(e) => table.setGlobalFilter(String(e.target.value))}
-              className="max-w-sm"
-            />
-          </div>
           <div className="rounded-md border">
+            <div className="flex items-center justify-between p-4">
+              <Input
+                placeholder="Filter..."
+                value={table.globalFilter}
+                onChange={(e) => table.setGlobalFilter(String(e.target.value))}
+                className="max-w-sm"
+              />
+              <NewNpc>
+                <Button variant={'outline'} onClick={() => {}}>
+                  <Plus />
+                </Button>
+              </NewNpc>
+            </div>
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (

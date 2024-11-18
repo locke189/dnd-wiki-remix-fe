@@ -6,7 +6,7 @@ import {
 } from '@remix-run/node';
 import { redirect, useLoaderData, useParams } from '@remix-run/react';
 import { Auth } from '~/lib/auth.server';
-import { readItem, readItems, updateItem } from '@directus/sdk';
+import { readFiles, readItem, readItems, updateItem } from '@directus/sdk';
 import { commitSession } from '~/lib/sessions.server';
 
 import { SessionPage } from '~/pages/session-page';
@@ -15,6 +15,8 @@ import { TSession } from '~/types/session';
 import { TPlayer } from '~/types/player';
 import { TNpc } from '~/types/npc';
 import { TLocation } from '~/types/location';
+import { TImage } from '~/types/images';
+import { TCampaign } from '~/types/campaigns';
 
 export const meta: MetaFunction = () => {
   return [
@@ -62,6 +64,25 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     })
   );
 
+  const campaigns = await client.request(
+    readItems('campaigns', {
+      fields: ['*'],
+    })
+  );
+
+  const images = await client.request(
+    readFiles({
+      query: {
+        filter: {
+          type: {
+            _eq: 'image',
+          },
+        },
+      },
+      limit: -1,
+    })
+  );
+
   return json(
     {
       isUserLoggedIn: true,
@@ -78,6 +99,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         ...location,
         main_image: getImageUrl(location.main_image),
       })),
+      images: images.map((image) => ({
+        ...image,
+        src: getImageUrl(image.id),
+      })),
+      campaigns,
     },
     {
       headers: {
@@ -127,6 +153,8 @@ export default function Index() {
     players?: TPlayer[];
     npcs?: TNpc[];
     locations?: TLocation[];
+    images?: TImage[];
+    campaigns?: TCampaign[];
   }>();
 
   console.log('data', data);

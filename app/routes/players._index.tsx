@@ -5,10 +5,11 @@ import {
 } from '@remix-run/node';
 import { Link, redirect, useLoaderData } from '@remix-run/react';
 import { Auth } from '~/lib/auth.server';
-import { readItems } from '@directus/sdk';
+import { createItem, readItems } from '@directus/sdk';
 import { commitSession } from '~/lib/sessions.server';
 import { ImageList } from '~/components/image-list';
 import { TPlayer } from '~/types/player';
+import { allItems } from '~/models/all-items';
 
 export const meta: MetaFunction = () => {
   return [
@@ -35,6 +36,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
       fields: ['*'],
     })
   );
+
+  // allItems.forEach(async (item) => {
+  //   console.log('item', item);
+  //   await client.request(createItem('Items', item as object));
+  // });
 
   const playersWithImages = players.map((player) => {
     return {

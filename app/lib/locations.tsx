@@ -12,7 +12,7 @@ import {
   UtensilsCrossed,
   Map,
 } from 'lucide-react';
-import { TLocationType } from '~/types/location';
+import { TLocation, TLocationType } from '~/types/location';
 
 export const mapLocationTypeToIcon = (type: TLocationType) => {
   switch (type) {
@@ -71,3 +71,10 @@ export function getLocationTypeData(type: string) {
       return { icon: <Map />, name: 'Map' };
   }
 }
+
+export const getLocationOptions = (locations: TLocation[]) => {
+  return locations.map((location: TLocation) => ({
+    value: location.id,
+    label: `${location.name} - ${getLocationTypeData(location.type).name}`,
+  }));
+};

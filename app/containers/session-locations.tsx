@@ -42,6 +42,8 @@ import {
   TooltipTrigger,
 } from '~/components/ui/tooltip';
 import { Tooltip } from '@radix-ui/react-tooltip';
+import { NewLocation } from './new-location';
+import { Plus } from 'lucide-react';
 
 type TSessionLocationsProps = {
   gameSession?: TSession;
@@ -216,15 +218,20 @@ export const SessionLocations: React.FC<TSessionLocationsProps> = ({
               Select the locations in this session
             </DialogDescription>
           </DialogHeader>
-          <div className="flex items-center py-4">
-            <Input
-              placeholder="Filter..."
-              value={table.globalFilter}
-              onChange={(e) => table.setGlobalFilter(String(e.target.value))}
-              className="max-w-sm"
-            />
-          </div>
           <div className="rounded-md border">
+            <div className="flex items-center justify-between p-4">
+              <Input
+                placeholder="Filter..."
+                value={table.globalFilter}
+                onChange={(e) => table.setGlobalFilter(String(e.target.value))}
+                className="max-w-sm"
+              />
+              <NewLocation>
+                <Button variant={'outline'} onClick={() => {}}>
+                  <Plus />
+                </Button>
+              </NewLocation>
+            </div>
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
