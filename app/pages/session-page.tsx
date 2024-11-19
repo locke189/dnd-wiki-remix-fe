@@ -33,6 +33,19 @@ import { TNpc } from '~/types/npc';
 import { SessionNpcs } from '~/containers/session-npcs';
 import { TLocation } from '~/types/location';
 import { SessionLocations } from '~/containers/session-locations';
+import { AvatarList } from '~/components/avatar-list';
+import { Pen, Save, Trash } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '~/components/ui/alert-dialog';
 
 type TSessionPageProps = {
   gameSession?: TSession;
@@ -161,6 +174,17 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
     );
   };
 
+  const onDelete = () => {
+    setSubmitted(true);
+    fetcher.submit(
+      {},
+      {
+        method: 'POST',
+        action: '/session/' + gameSession?.id + '/delete',
+      }
+    );
+  };
+
   useEffect(() => {
     if (fetcher.state === 'idle' && submitted) {
       setSubmitted(false);
@@ -268,35 +292,10 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                       }}
                     />
                   ) : (
-                    <div className="flex flex-col gap-2">
-                      <h2 className="text-lg font-bold">NPCs</h2>
-                      <ul className="flex flex-row gap-2 flex-wrap">
-                        {npcsInSession?.map((npc) => (
-                          <li key={npc.id}>
-                            <Link to={`/npc/${npc.id}`}>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger>
-                                    <Avatar>
-                                      <AvatarImage src={npc.main_image} />
-                                      <AvatarFallback>
-                                        {npc.name
-                                          .split(' ')
-                                          .map((n) => n[0])
-                                          .join('')}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>{npc.name}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <AvatarList<TNpc>
+                      data={npcsInSession}
+                      routePrefix="/npc/"
+                    />
                   )}
                 </CardDescription>
               </Card>
@@ -310,35 +309,10 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                       setRowSelection={setRowSelectionLocations}
                     />
                   ) : (
-                    <div className="flex flex-col gap-2">
-                      <h2 className="text-lg font-bold">Locations</h2>
-                      <ul className="flex flex-row gap-2 flex-wrap">
-                        {locationsInSession?.map((location) => (
-                          <li key={location.id}>
-                            <Link to={`/location/${location.id}`}>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger>
-                                    <Avatar>
-                                      <AvatarImage src={location.main_image} />
-                                      <AvatarFallback>
-                                        {location.name
-                                          .split(' ')
-                                          .map((n) => n[0])
-                                          .join('')}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>{location.name}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <AvatarList<TLocation>
+                      data={locationsInSession}
+                      routePrefix="/location/"
+                    />
                   )}
                 </CardDescription>
               </Card>
@@ -411,15 +385,59 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
             </div>
           </div>
           <Portal portalId={LAYOUT_PAGE_HEADER_PORTAL_ID}>
-            <Button
-              onClick={() => {
-                setIsEditing(!isEditing);
-                isEditing && form.handleSubmit(onSubmit)();
-              }}
-              type="button"
-            >
-              {isEditing ? 'Save' : 'Edit'}
-            </Button>
+            <div className="flex gap-3">
+              {!isNew && (
+                <AlertDialog>
+                  <AlertDialogTrigger>
+                    <Button type="button" variant="destructive">
+                      <Trash />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Are you absolutely sure?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently
+                        delete this session.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction asChild>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          onClick={() => onDelete()}
+                        >
+                          <Trash />
+                          Delete
+                        </Button>
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+              <Button
+                onClick={() => {
+                  setIsEditing(!isEditing);
+                  isEditing && form.handleSubmit(onSubmit)();
+                }}
+                type="button"
+              >
+                {isEditing ? (
+                  <>
+                    <Save /> Save
+                  </>
+                ) : (
+                  <>
+                    <Pen /> Edit
+                  </>
+                )}
+              </Button>
+            </div>
           </Portal>
         </form>
       </Form>

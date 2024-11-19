@@ -99,7 +99,9 @@ export const NewLocation: React.FC<TNewLocationProps> = ({ children }) => {
       {
         data: JSON.stringify({
           ...values,
-          ...(Number(selectedImageId) && { image: Number(selectedImageId) }),
+          ...(Number(selectedImageId) && {
+            main_image: Number(selectedImageId),
+          }),
           campaigns: [
             {
               campaigns_id: selectedCampaignId,
@@ -205,36 +207,6 @@ export const NewLocation: React.FC<TNewLocationProps> = ({ children }) => {
                     />
                   </div>
                   <div className="grid grid-cols-1 gap-x-3">
-                    {/* <FormField
-                      control={form.control}
-                      name="parent_location"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Parent Location</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a parent location..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {getLocationOptions(locations).map((option) => (
-                                <SelectItem
-                                  key={option.value}
-                                  value={String(option.value)}
-                                >
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormItem>
-                      )}
-                    /> */}
                     <FormField
                       control={form.control}
                       name="parent_location"
