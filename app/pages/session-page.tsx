@@ -39,6 +39,7 @@ type TSessionPageProps = {
   players?: TPlayer[];
   npcs?: TNpc[];
   locations?: TLocation[];
+  isNew?: boolean;
 };
 
 export const SessionPage: React.FC<TSessionPageProps> = ({
@@ -46,13 +47,14 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
   players,
   npcs,
   locations,
+  isNew = false,
 }) => {
-  const [sumbitted, setSubmitted] = React.useState(false);
+  const [submitted, setSubmitted] = React.useState(false);
   const [rowSelectionPlayers, setRowSelectionPlayers] = React.useState({});
   const [rowSelectionNpcs, setRowSelectionNpcs] = React.useState({});
   const [rowSelectionLocations, setRowSelectionLocations] = React.useState({});
 
-  const [isEditing, setIsEditing] = React.useState(false);
+  const [isEditing, setIsEditing] = React.useState(isNew);
 
   const fetcher = useFetcher();
   // const isLoading = fetcher.state === 'loading';
@@ -69,7 +71,7 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: gameSession?.name,
+      name: gameSession?.name ?? '',
       date:
         typeof gameSession?.date === 'string'
           ? (new Date(gameSession?.date) as unknown as Date)
@@ -150,6 +152,7 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
           players: selectedPlayers,
           Npcs: selectedNpcs,
           Locations: selectedLocations,
+          campaign: gameSession?.campaign,
         }),
       },
       {
@@ -159,10 +162,10 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
   };
 
   useEffect(() => {
-    if (fetcher.state === 'idle' && sumbitted) {
+    if (fetcher.state === 'idle' && submitted) {
       setSubmitted(false);
     }
-  }, [fetcher.state, fetcher.data, sumbitted]);
+  }, [fetcher.state, fetcher.data, submitted]);
 
   return (
     // navbar

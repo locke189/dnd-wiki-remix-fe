@@ -1,21 +1,5 @@
 import { Link, useLoaderData } from '@remix-run/react';
-import {
-  Blend,
-  Bot,
-  Church,
-  Gamepad2,
-  Hotel,
-  House,
-  LandPlot,
-  Map,
-  Mountain,
-  Sailboat,
-  Sparkles,
-  Swords,
-  TreePalm,
-  User2,
-  UtensilsCrossed,
-} from 'lucide-react';
+import { Bot, ChevronDown, Gamepad2, Map, Plus, User2 } from 'lucide-react';
 import { ReactNode, useContext } from 'react';
 import {
   Collapsible,
@@ -28,6 +12,7 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -109,13 +94,18 @@ export const AppSidebarContent: React.FC = () => {
           return (
             <Collapsible className="group/collapsible" key={location.id}>
               <SidebarMenuItem className="pr-0 mr-0">
-                <CollapsibleTrigger asChild>
+                <Link to={`/location/${location.id}`}>
                   <SidebarMenuButton asChild>
                     <div>
                       {mapLocationTypeToIcon(location.type)}
                       <span>{location.name}</span>
                     </div>
                   </SidebarMenuButton>
+                </Link>
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuAction>
+                    <ChevronDown /> <span className="sr-only">New Npc</span>
+                  </SidebarMenuAction>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub className="pr-0 mr-0">
@@ -159,7 +149,15 @@ export const AppSidebarContent: React.FC = () => {
                       <span>Sessions</span>
                     </div>
                   </SidebarMenuButton>
+                  {/* <SidebarMenuAction>
+                    <Plus /> <span className="sr-only">New Session</span>
+                  </SidebarMenuAction> */}
                 </CollapsibleTrigger>
+                <SidebarMenuAction asChild>
+                  <Link to="/session/new">
+                    <Plus /> <span className="sr-only">New Session</span>
+                  </Link>
+                </SidebarMenuAction>
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {selectedCampaignSessions?.map((session) => (
@@ -208,6 +206,11 @@ export const AppSidebarContent: React.FC = () => {
                     </div>
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
+                <SidebarMenuAction asChild>
+                  <Link to="/npc/new">
+                    <Plus /> <span className="sr-only">New Npc</span>
+                  </Link>
+                </SidebarMenuAction>
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {selectedCampaignNPCs?.map((npc) => (
@@ -231,6 +234,11 @@ export const AppSidebarContent: React.FC = () => {
                     </div>
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
+                <SidebarMenuAction asChild>
+                  <Link to="/location/new">
+                    <Plus /> <span className="sr-only">New Location</span>
+                  </Link>
+                </SidebarMenuAction>
                 <CollapsibleContent>
                   <SidebarMenuSub className="pr-0 mr-0">{dom}</SidebarMenuSub>
                 </CollapsibleContent>

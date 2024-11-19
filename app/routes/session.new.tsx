@@ -6,7 +6,13 @@ import {
 } from '@remix-run/node';
 import { redirect, useLoaderData, useParams } from '@remix-run/react';
 import { Auth } from '~/lib/auth.server';
-import { readFiles, readItem, readItems, updateItem } from '@directus/sdk';
+import {
+  createItem,
+  readFiles,
+  readItem,
+  readItems,
+  updateItem,
+} from '@directus/sdk';
 import { commitSession } from '~/lib/sessions.server';
 
 import { SessionPage } from '~/pages/session-page';
@@ -17,6 +23,8 @@ import { TNpc } from '~/types/npc';
 import { TLocation } from '~/types/location';
 import { TImage } from '~/types/images';
 import { TCampaign } from '~/types/campaigns';
+import { AppContext } from '~/context/app.context';
+import { useContext } from 'react';
 
 export const meta: MetaFunction = () => {
   return [
@@ -30,21 +38,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     request
   );
 
-  const { id } = params;
-
-  if (!isUserLoggedIn || client === null || !id) {
+  if (!isUserLoggedIn || client === null) {
     return redirect('/login', {
       headers: {
         'Set-Cookie': await commitSession(session),
       },
     });
   }
-
-  const gameSession = await client.request(
-    readItem('sessions', id, {
-      fields: ['*', 'players.*', 'Npcs.*', 'Locations.*'],
-    })
-  );
 
   const npcs = await client.request(
     readItems('Npc', {
@@ -86,7 +86,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return json(
     {
       isUserLoggedIn: true,
-      gameSession,
       players: players.map((player) => ({
         ...player,
         main_image: getImageUrl(player.main_image),
@@ -119,9 +118,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
   );
 
   const body = await request.formData();
-  const { id } = params;
 
-  if (!isUserLoggedIn || client === null || !id) {
+  if (!isUserLoggedIn || client === null) {
     return redirect('/login', {
       headers: {
         'Set-Cookie': await commitSession(session),
@@ -131,18 +129,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   const data = JSON.parse(String(body.get('data')));
 
+  console.log(data);
+
   const gameSession = await client.request(
-    updateItem('sessions', id, data as object)
+    createItem('sessions', data as object)
   );
 
-  return json(
-    { data: gameSession },
-    {
-      headers: {
-        ...(await getRequestHeaders()),
-      },
-    }
-  );
+  return redirect(`/session/${gameSession.id}`);
 }
 
 export default function Index() {
@@ -157,17 +150,32 @@ export default function Index() {
     campaigns?: TCampaign[];
   }>();
 
-  // console.log('data', data);
+  const { players, npcs, locations } = data || {};
 
-  const { gameSession, players, npcs, locations } = data || {};
+  const appContext = useContext(AppContext);
+  const { selectedCampaignId } = appContext;
+
+  const emptySession: TSession = {
+    name: '',
+    date: new Date().toISOString(),
+    campaign: selectedCampaignId,
+    id: 0,
+    players: [],
+    Npcs: [],
+    Locations: [],
+  };
+
   return (
     // navbar
-    <SessionPage
-      gameSession={gameSession}
-      key={id}
-      players={players}
-      npcs={npcs}
-      locations={locations}
-    />
+    <>
+      <SessionPage
+        gameSession={emptySession}
+        key={id}
+        players={players}
+        npcs={npcs}
+        locations={locations}
+        isNew={true}
+      />
+    </>
   );
 }
