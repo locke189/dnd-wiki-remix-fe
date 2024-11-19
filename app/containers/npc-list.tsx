@@ -30,24 +30,21 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
-import { TSession } from '~/types/session';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Checkbox } from '~/components/ui/checkbox';
 import { TNpc } from '~/types/npc';
 import { Input } from '~/components/ui/input';
 import { Plus } from 'lucide-react';
 import { NewNpc } from './new-npc';
 
-type TSessionNpcsProps = {
-  gameSession?: TSession;
+type TNpcListProps = {
   npcs?: TNpc[];
   rowSelection: RowSelectionState;
   setRowSelection: OnChangeFn<RowSelectionState>;
 };
 
-export const SessionNpcs: React.FC<TSessionNpcsProps> = ({
+export const NpcList: React.FC<TNpcListProps> = ({
   npcs,
-  gameSession,
   rowSelection,
   setRowSelection,
 }) => {
@@ -113,32 +110,10 @@ export const SessionNpcs: React.FC<TSessionNpcsProps> = ({
     },
   ];
 
-  const npcsInCampaign = useMemo(
-    () =>
-      npcs?.filter((npc) =>
-        npc.campaigns.some(
-          (campaign) => campaign.campaigns_id === gameSession?.campaign
-        )
-      ),
-    [npcs, gameSession]
-  );
-
-  const getInitialRowSelection = useCallback(() => {
-    const selection: { [key: number]: boolean } = {};
-    npcsInCampaign?.forEach((npc, index) => {
-      if (gameSession?.Npcs.some((n) => n.Npc_id === npc.id)) {
-        selection[index] = true;
-      }
-    });
-    return selection;
-  }, [gameSession, npcsInCampaign]);
-
-  // const [rowSelection, setRowSelection] = useState(getInitialRowSelection());
-
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const table = useReactTable<TNpc>({
-    data: npcsInCampaign ?? [],
+    data: npcs ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     onRowSelectionChange: setRowSelection,
@@ -153,10 +128,6 @@ export const SessionNpcs: React.FC<TSessionNpcsProps> = ({
       pagination,
     },
   });
-
-  useEffect(() => {
-    setRowSelection(getInitialRowSelection());
-  }, [getInitialRowSelection, setRowSelection]);
 
   return (
     <>
@@ -264,7 +235,7 @@ export const SessionNpcs: React.FC<TSessionNpcsProps> = ({
       <p className="mt-3">
         Selected Npcs:{' '}
         {Object.keys(rowSelection)
-          .map((index) => npcsInCampaign?.[index].name)
+          .map((index) => npcs?.[index].name)
           .join(', ')}
       </p>
     </>

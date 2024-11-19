@@ -1,20 +1,19 @@
 import {
+  ActionFunctionArgs,
   json,
   type LoaderFunctionArgs,
   type MetaFunction,
 } from '@remix-run/node';
-import { redirect, useLoaderData } from '@remix-run/react';
+import { redirect, useLoaderData, useParams } from '@remix-run/react';
 import { Auth } from '~/lib/auth.server';
-import { readItem } from '@directus/sdk';
+import { readItem, readItems, updateItem } from '@directus/sdk';
 import { commitSession } from '~/lib/sessions.server';
 
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '~/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
+import { PlayerPage } from '~/pages/players-page';
+import { TPlayer } from '~/types/player';
+import { getImageUrl } from '~/lib/utils';
+import { TSession } from '~/types/session';
+import { TNpc } from '~/types/npc';
 
 export const meta: MetaFunction = () => {
   return [
@@ -40,17 +39,62 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   const player = await client.request(
     readItem('Player', id, {
-      fields: ['*'],
+      fields: ['*', 'campaigns.*', 'Allied_npcs.*', 'sessions.*'],
     })
   );
 
-  const playerWithImages = {
-    ...player,
-    main_image_url: `${process.env.DB_DOMAIN}:${process.env.DB_PORT}/assets/${player.main_image}`,
-  };
+  const sessions = await client.request(
+    readItems('sessions', { fields: ['id', 'name', 'date', 'campaign'] })
+  );
+
+  const npcs = await client.request(
+    readItems('Npc', {
+      fields: ['*', 'campaigns.*'],
+    })
+  );
 
   return json(
-    { isUserLoggedIn: true, player: playerWithImages },
+    {
+      isUserLoggedIn: true,
+      player: { ...player, main_image: getImageUrl(player.main_image) },
+      sessions,
+      npcs: npcs.map((npc) => ({
+        ...npc,
+        main_image: getImageUrl(npc.main_image),
+      })),
+    },
+    {
+      headers: {
+        ...(await getRequestHeaders()),
+      },
+    }
+  );
+}
+
+export async function action({ request, params }: ActionFunctionArgs) {
+  const { client, isUserLoggedIn, getRequestHeaders, session } = await Auth(
+    request
+  );
+
+  const body = await request.formData();
+  const { id } = params;
+
+  if (!isUserLoggedIn || client === null || !id) {
+    return redirect('/login', {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    });
+  }
+
+  const data = JSON.parse(String(body.get('data')));
+
+  const gameSession = await client.request(
+    updateItem('Player', id, data as object)
+  );
+
+  return json(
+    { data: gameSession },
     {
       headers: {
         ...(await getRequestHeaders()),
@@ -62,26 +106,22 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 export default function Index() {
   const data = useLoaderData<{
     isUserLoggedIn: boolean;
-    player: {
-      name: string;
-      id: string;
-      main_image?: string;
-      main_image_url?: string;
-      class?: string;
-      race?: string;
-      story?: string;
-      goals?: string;
-      private_goals?: string;
-      url?: string;
-    };
+    player: TPlayer;
+    sessions: TSession[];
+    npcs: TNpc[];
   } | null>();
 
-  const { player } = data || {};
+  const { id } = useParams();
+
+  const { player, sessions, npcs } = data || {};
+
+  console.log(data);
 
   return (
     // navbar
     <>
-      <div className="flex flex-1 flex-col gap-4 p-4">
+      <PlayerPage player={player} key={id} sessions={sessions} npcs={npcs} />
+      {/* <div className="flex flex-1 flex-col gap-4 p-4">
         <div className="grid auto-rows-min gap-4 lg:grid-cols-3">
           <Card className="aspect-video rounded-xl bg-muted/50 flex items-center relative">
             {player?.main_image_url && (
@@ -124,7 +164,7 @@ export default function Index() {
             </article>
           )}
         </div>
-      </div>
+      </div> */}
     </>
   );
 }

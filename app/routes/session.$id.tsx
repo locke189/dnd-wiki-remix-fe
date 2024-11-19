@@ -157,7 +157,7 @@ export default function Index() {
     campaigns?: TCampaign[];
   }>();
 
-  // console.log('data', data);
+  console.log('data', data);
 
   const { gameSession, players, npcs, locations } = data || {};
   return (

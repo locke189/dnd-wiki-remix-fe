@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { Link, useFetcher } from '@remix-run/react';
+import React, { useContext, useEffect, useMemo } from 'react';
+import { useFetcher } from '@remix-run/react';
 
 import {
   Card,
@@ -14,23 +14,15 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem } from '~/components/ui/form';
 import { EditableInput } from '~/components/editable-input';
-import { format } from 'date-fns';
-import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '~/components/ui/tooltip';
+import { format, set } from 'date-fns';
 
 import { SessionPlayers } from '~/containers/session-players';
 import { TPlayer } from '~/types/player';
 import { TSession } from '~/types/session';
 import { LAYOUT_PAGE_HEADER_PORTAL_ID } from '~/models/global';
 import { Portal } from '~/components/portal';
-import { TNpc } from '~/types/npc';
-import { SessionNpcs } from '~/containers/session-npcs';
+import { TNpc, TNpcRelationship } from '~/types/npc';
+import { NpcList, SessionNpcs } from '~/containers/npc-list';
 import { TLocation } from '~/types/location';
 import { SessionLocations } from '~/containers/session-locations';
 import { AvatarList } from '~/components/avatar-list';
@@ -46,6 +38,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '~/components/ui/alert-dialog';
+import { useModelList } from '~/hooks/useModelList';
+import { AppContext } from '~/context/app.context';
 
 type TSessionPageProps = {
   gameSession?: TSession;
@@ -58,19 +52,32 @@ type TSessionPageProps = {
 export const SessionPage: React.FC<TSessionPageProps> = ({
   gameSession,
   players,
-  npcs,
   locations,
   isNew = false,
 }) => {
   const [submitted, setSubmitted] = React.useState(false);
   const [rowSelectionPlayers, setRowSelectionPlayers] = React.useState({});
-  const [rowSelectionNpcs, setRowSelectionNpcs] = React.useState({});
   const [rowSelectionLocations, setRowSelectionLocations] = React.useState({});
 
   const [isEditing, setIsEditing] = React.useState(isNew);
 
   const fetcher = useFetcher();
   // const isLoading = fetcher.state === 'loading';
+
+  const appContext = useContext(AppContext);
+  const { npcs, selectedCampaignId } = appContext || {};
+
+  const {
+    rowSelection: npcRowSelection,
+    getSelectedNpcRelations,
+    setRowSelection: setNpcRowSelection,
+    dataInCampaign: npcsInCampaign,
+  } = useModelList<TNpcRelationship, TNpc>({
+    relations: gameSession?.Npcs || [],
+    relationsKey: 'Npc_id',
+    data: npcs || [],
+    selectedCampaignId: gameSession?.campaign ?? selectedCampaignId ?? 0,
+  });
 
   const formSchema = z.object({
     name: z.string().optional(),
@@ -124,22 +131,6 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
     )
     .map((player) => ({ Player_id: player.id }));
 
-  const npcsInCampaign = useMemo(
-    () =>
-      npcs?.filter((npc) =>
-        npc.campaigns.some(
-          (campaign) => campaign.campaigns_id === gameSession?.campaign
-        )
-      ),
-    [npcs, gameSession]
-  );
-
-  const selectedNpcs = npcsInCampaign
-    ?.filter((npc, index) =>
-      Object.keys(rowSelectionNpcs).includes(String(index))
-    )
-    .map((npc) => ({ Npc_id: npc.id }));
-
   const locationsInCampaign = useMemo(
     () =>
       locations?.filter((location) =>
@@ -163,7 +154,7 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
         data: JSON.stringify({
           ...values,
           players: selectedPlayers,
-          Npcs: selectedNpcs,
+          Npcs: getSelectedNpcRelations(npcRowSelection),
           Locations: selectedLocations,
           campaign: gameSession?.campaign,
         }),
@@ -259,13 +250,10 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
               <Card className=" rounded-xl bg-muted/50 flex relative h-full">
                 <CardDescription className="px-6 pb-6 py-6">
                   {isEditing ? (
-                    <SessionNpcs
-                      {...{
-                        npcs,
-                        gameSession,
-                        rowSelection: rowSelectionNpcs,
-                        setRowSelection: setRowSelectionNpcs,
-                      }}
+                    <NpcList
+                      npcs={npcsInCampaign}
+                      rowSelection={npcRowSelection}
+                      setRowSelection={setNpcRowSelection}
                     />
                   ) : (
                     <AvatarList<TNpc>

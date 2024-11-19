@@ -14,3 +14,7 @@ export type TNpc = {
     sessions_id: number;
   }[];
 };
+
+export type TNpcRelationship = {
+  Npc_id: number;
+};

@@ -11,11 +11,16 @@ import type { LinksFunction, LoaderFunctionArgs } from '@remix-run/node';
 
 import './tailwind.css';
 import { Auth } from './lib/auth.server';
-import { readItems, readMe } from '@directus/sdk';
+import { readFiles, readItems, readMe } from '@directus/sdk';
 import { NavBar } from './containers/navbar';
 import SidebarLayout from './containers/sidabarLayout';
 import { useContext, useState } from 'react';
 import { AppContext } from './context/app.context';
+import { getImageUrl } from './lib/utils';
+import { TNpc } from './types/npc';
+import { TPlayer } from './types/player';
+import { TLocation } from './types/location';
+import { TImage } from './types/images';
 
 export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -65,7 +70,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const npcs = await client.request(
     readItems('Npc', {
-      fields: ['name', 'id', 'campaigns.campaigns_id'],
+      fields: ['name', 'id', 'class', 'main_image', 'campaigns.campaigns_id'],
     })
   );
 
@@ -88,15 +93,41 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })
   );
 
+  const images = await client.request(
+    readFiles({
+      query: {
+        filter: {
+          type: {
+            _eq: 'image',
+          },
+        },
+      },
+      limit: -1,
+    })
+  );
+
   return json(
     {
       isUserLoggedIn: true,
-      players,
       user,
       sessions,
-      locations,
       campaigns,
-      npcs,
+      players: players.map((player) => ({
+        ...player,
+        main_image: getImageUrl(player.main_image),
+      })),
+      npcs: npcs.map((npc) => ({
+        ...npc,
+        main_image: getImageUrl(npc.main_image),
+      })),
+      locations: locations.map((location) => ({
+        ...location,
+        main_image: getImageUrl(location.main_image),
+      })),
+      images: images.map((image) => ({
+        ...image,
+        src: getImageUrl(image.id),
+      })),
     },
     {
       headers: {
@@ -109,10 +140,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export function Layout({ children }: { children: React.ReactNode }) {
   const data = useLoaderData<{
     isUserLoggedIn: boolean;
-    players: {
-      name: string;
-      id: string;
-    };
+    npcs: TNpc[];
+    players: TPlayer[];
+    locations: TLocation[];
+    images: TImage[];
   } | null>();
   const [selectedCampaignId, setSelectedCampaignId] = useState<number>(2);
 
@@ -130,6 +161,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
           value={{
             selectedCampaignId,
             setSelectedCampaignId,
+            npcs: data?.npcs ?? [],
+            players: data?.players ?? [],
+            locations: [],
+            images: [],
+            campaigns: [],
+            sessions: [],
           }}
         >
           {!data?.isUserLoggedIn ? (

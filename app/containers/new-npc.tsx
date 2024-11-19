@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DialogPortal } from '@radix-ui/react-dialog';
-import { useFetcher, useLoaderData } from '@remix-run/react';
+import { useFetcher } from '@remix-run/react';
 import { CircleOff } from 'lucide-react';
 import { useContext, useEffect, useState } from 'react';
 import { Form, useForm } from 'react-hook-form';
@@ -34,8 +34,8 @@ import { Textarea } from '~/components/ui/textarea';
 import { AppContext } from '~/context/app.context';
 import { randomizeNPC } from '~/lib/utils';
 import { classOptions, genderOptions, raceOptions } from '~/models/global';
-import { TCampaign } from '~/types/campaigns';
-import { TImage } from '~/types/images';
+// import { TCampaign } from '~/types/campaigns';
+// import { TImage } from '~/types/images';
 
 type TNewNpc = {
   children: React.ReactNode;
@@ -49,12 +49,10 @@ export const NewNpc: React.FC<TNewNpc> = ({ children }) => {
   const [chooseImage, setChooseImage] = useState(false);
   const [imageFilters, setImageFilters] = useState<string[]>(['npc']);
 
-  const data = useLoaderData();
-  const images = data.images as TImage[];
-  const campaigns = data.campaigns as TCampaign[];
-
   const appContext = useContext(AppContext);
-  const selectedCampaignId = appContext.selectedCampaignId;
+  const selectedCampaignId = appContext?.selectedCampaignId;
+  const images = appContext?.images;
+  // const campaigns = appContext?.campaigns;
 
   const fetcher = useFetcher();
 
