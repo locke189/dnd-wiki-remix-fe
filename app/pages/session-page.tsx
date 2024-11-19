@@ -248,35 +248,11 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                       setRowSelection={setRowSelectionPlayers}
                     />
                   ) : (
-                    <div className="flex flex-col gap-2">
-                      <h2 className="text-lg font-bold">Players</h2>
-                      <ul className="flex flex-row gap-2 flex-wrap">
-                        {playersInSession?.map((player) => (
-                          <li key={player.id}>
-                            <Link to={`/player/${player.id}`}>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger>
-                                    <Avatar>
-                                      <AvatarImage src={player.main_image} />
-                                      <AvatarFallback>
-                                        {player.name
-                                          .split(' ')
-                                          .map((n) => n[0])
-                                          .join('')}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>{player.name}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <AvatarList<TPlayer>
+                      data={playersInSession}
+                      routePrefix="/player/"
+                      title="Players"
+                    />
                   )}
                 </CardDescription>
               </Card>
@@ -295,6 +271,7 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                     <AvatarList<TNpc>
                       data={npcsInSession}
                       routePrefix="/npc/"
+                      title="Npcs"
                     />
                   )}
                 </CardDescription>
@@ -312,6 +289,7 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                     <AvatarList<TLocation>
                       data={locationsInSession}
                       routePrefix="/location/"
+                      title="Locations"
                     />
                   )}
                 </CardDescription>

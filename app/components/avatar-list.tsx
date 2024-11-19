@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 export type TAvatarListProps<T> = {
   data?: T[];
   routePrefix: string;
+  title: string;
 };
 
 export const AvatarList = <
@@ -13,10 +14,11 @@ export const AvatarList = <
 >({
   data,
   routePrefix,
+  title,
 }: TAvatarListProps<T>) => {
   return (
     <div className="flex flex-col gap-2">
-      <h2 className="text-lg font-bold">NPCs</h2>
+      <h2 className="text-lg font-bold">{title}</h2>
       <ul className="flex flex-row gap-2 flex-wrap">
         {data?.map((item) => (
           <li key={item.id}>
