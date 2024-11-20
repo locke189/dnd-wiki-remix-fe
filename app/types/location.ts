@@ -44,7 +44,9 @@ export type TLocation = {
   sessions: {
     sessions_id: number;
   }[];
-  Locations: {
-    Locations_id: number;
-  }[];
+  Locations: TLocationsRelationship[];
+};
+
+export type TLocationsRelationship = {
+  Locations_id: number;
 };

@@ -1,3 +1,7 @@
+import { TLocationsRelationship } from './location';
+import { TNpcRelationship } from './npc';
+import { TPlayerRelationship } from './player';
+
 export type TSession = {
   name: string;
   id: number;
@@ -7,13 +11,7 @@ export type TSession = {
   master_scenes?: string;
   master_secrets?: string;
   campaign: number;
-  players: {
-    Player_id: number;
-  }[];
-  Npcs: {
-    Npc_id: number;
-  }[];
-  Locations: {
-    Locations_id: number;
-  }[];
+  players: TPlayerRelationship[];
+  Npcs: TNpcRelationship[];
+  Locations: TLocationsRelationship[];
 };

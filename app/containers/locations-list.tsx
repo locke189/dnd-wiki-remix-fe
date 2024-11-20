@@ -11,18 +11,18 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import { useState } from 'react';
 import { Checkbox } from '~/components/ui/checkbox';
-import { TNpc } from '~/types/npc';
 import { ListTemplate } from '~/components/ui/list-template';
+import { TLocation } from '~/types/location';
 
-type TNpcListProps = {
-  npcs?: TNpc[];
+type TLocationsListProps = {
+  locations?: TLocation[];
   rowSelection: RowSelectionState;
   setRowSelection: OnChangeFn<RowSelectionState>;
   buttonLabel?: string;
 };
 
-export const NpcList: React.FC<TNpcListProps> = ({
-  npcs,
+export const LocationsList: React.FC<TLocationsListProps> = ({
+  locations,
   rowSelection,
   setRowSelection,
   buttonLabel,
@@ -32,7 +32,7 @@ export const NpcList: React.FC<TNpcListProps> = ({
     pageSize: 5, //default page size
   });
 
-  const columns: ColumnDef<TNpc>[] = [
+  const columns: ColumnDef<TLocation>[] = [
     {
       id: 'select',
       header: ({ table }) => (
@@ -91,8 +91,8 @@ export const NpcList: React.FC<TNpcListProps> = ({
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const table = useReactTable<TNpc>({
-    data: npcs ?? [],
+  const table = useReactTable<TLocation>({
+    data: locations ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     onRowSelectionChange: setRowSelection,
@@ -109,16 +109,16 @@ export const NpcList: React.FC<TNpcListProps> = ({
   });
 
   return (
-    <ListTemplate<TNpc>
+    <ListTemplate<TLocation>
       rowSelection={rowSelection}
       table={table}
       columns={columns}
-      data={npcs ?? []}
+      data={locations ?? []}
       newDataComponent={undefined}
       buttonLabel={buttonLabel}
-      title="Choose NPCs"
-      description="Select the NPCs in this session"
-      selectionLabel="Selected NPCs"
+      title="Choose locations"
+      description="Select the locations in this session"
+      selectionLabel="Selected locations"
     />
   );
 };

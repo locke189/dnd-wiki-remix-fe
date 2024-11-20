@@ -1,3 +1,5 @@
+import { TNpcRelationship } from './npc';
+
 export type TPlayer = {
   name: string;
   id: number;
@@ -19,10 +21,12 @@ export type TPlayer = {
   goals: string;
   user: string;
   age: string;
-  Allied_npcs: {
-    Npc_id: number;
-  }[];
+  Allied_npcs: TNpcRelationship[];
   sessions: {
     sessions_id: number;
   }[];
+};
+
+export type TPlayerRelationship = {
+  Player_id: number;
 };

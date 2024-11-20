@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { useFetcher } from '@remix-run/react';
 
 import {
@@ -16,15 +16,13 @@ import { Form, FormControl, FormField, FormItem } from '~/components/ui/form';
 import { EditableInput } from '~/components/editable-input';
 import { format } from 'date-fns';
 
-import { SessionPlayers } from '~/containers/session-players';
-import { TPlayer } from '~/types/player';
+import { TPlayer, TPlayerRelationship } from '~/types/player';
 import { TSession } from '~/types/session';
 import { LAYOUT_PAGE_HEADER_PORTAL_ID } from '~/models/global';
 import { Portal } from '~/components/portal';
 import { TNpc, TNpcRelationship } from '~/types/npc';
 import { NpcList } from '~/containers/npc-list';
-import { TLocation } from '~/types/location';
-import { SessionLocations } from '~/containers/session-locations';
+import { TLocation, TLocationsRelationship } from '~/types/location';
 import { AvatarList } from '~/components/avatar-list';
 import { Pen, Save, Trash } from 'lucide-react';
 import {
@@ -40,6 +38,8 @@ import {
 } from '~/components/ui/alert-dialog';
 import { useModelList } from '~/hooks/useModelList';
 import { AppContext } from '~/context/app.context';
+import { LocationsList } from '~/containers/locations-list';
+import { PlayersList } from '~/containers/players-list';
 
 type TSessionPageProps = {
   gameSession?: TSession;
@@ -50,13 +50,9 @@ type TSessionPageProps = {
 
 export const SessionPage: React.FC<TSessionPageProps> = ({
   gameSession,
-  players,
-  locations,
   isNew = false,
 }) => {
   const [submitted, setSubmitted] = React.useState(false);
-  const [rowSelectionPlayers, setRowSelectionPlayers] = React.useState({});
-  const [rowSelectionLocations, setRowSelectionLocations] = React.useState({});
 
   const [isEditing, setIsEditing] = React.useState(isNew);
 
@@ -64,17 +60,41 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
   // const isLoading = fetcher.state === 'loading';
 
   const appContext = useContext(AppContext);
-  const { npcs, selectedCampaignId } = appContext || {};
+  const { locations, npcs, selectedCampaignId, players } = appContext || {};
 
   const {
     rowSelection: npcRowSelection,
-    getSelectedNpcRelations,
+    getSelectedRelations: getSelectedNpcRelations,
     setRowSelection: setNpcRowSelection,
     dataInCampaign: npcsInCampaign,
   } = useModelList<TNpcRelationship, TNpc>({
     relations: gameSession?.Npcs || [],
     relationsKey: 'Npc_id',
     data: npcs || [],
+    selectedCampaignId: gameSession?.campaign ?? selectedCampaignId ?? 0,
+  });
+
+  const {
+    dataInCampaign: locationsInCampaign,
+    rowSelection: locationRowSelection,
+    setRowSelection: setLocationRowSelection,
+    getSelectedRelations: getSelectedLocationRelations,
+  } = useModelList<TLocationsRelationship, TLocation>({
+    relations: gameSession?.Locations || [],
+    relationsKey: 'Locations_id',
+    data: locations || [],
+    selectedCampaignId: gameSession?.campaign ?? selectedCampaignId ?? 0,
+  });
+
+  const {
+    rowSelection: playerRowSelection,
+    getSelectedRelations: getSelectedPlayerRelations,
+    setRowSelection: setPlayerRowSelection,
+    dataInCampaign: playersInCampaign,
+  } = useModelList<TPlayerRelationship, TPlayer>({
+    relations: gameSession?.players || [],
+    relationsKey: 'Player_id',
+    data: players || [],
     selectedCampaignId: gameSession?.campaign ?? selectedCampaignId ?? 0,
   });
 
@@ -110,41 +130,9 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
     gameSession?.Npcs?.find((n) => n.Npc_id === npc.id)
   );
 
-  const locationsInSession = locations?.filter((location) =>
+  const locationsInSession = locationsInCampaign?.filter((location) =>
     gameSession?.Locations?.find((l) => l.Locations_id === location.id)
   );
-
-  const playersInCampaign = useMemo(
-    () =>
-      players?.filter((player) =>
-        player.campaigns.some(
-          (campaign) => campaign.campaigns_id === gameSession?.campaign
-        )
-      ),
-    [players, gameSession]
-  );
-
-  const selectedPlayers = playersInCampaign
-    ?.filter((player, index) =>
-      Object.keys(rowSelectionPlayers).includes(String(index))
-    )
-    .map((player) => ({ Player_id: player.id }));
-
-  const locationsInCampaign = useMemo(
-    () =>
-      locations?.filter((location) =>
-        location.campaigns.some(
-          (campaign) => campaign.campaigns_id === gameSession?.campaign
-        )
-      ),
-    [locations, gameSession]
-  );
-
-  const selectedLocations = locationsInCampaign
-    ?.filter((location, index) =>
-      Object.keys(rowSelectionLocations).includes(String(index))
-    )
-    .map((location) => ({ Locations_id: location.id }));
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     setSubmitted(true);
@@ -152,9 +140,9 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
       {
         data: JSON.stringify({
           ...values,
-          players: selectedPlayers,
+          players: getSelectedPlayerRelations(playerRowSelection),
           Npcs: getSelectedNpcRelations(npcRowSelection),
-          Locations: selectedLocations,
+          Locations: getSelectedLocationRelations(locationRowSelection),
           campaign: gameSession?.campaign,
         }),
       },
@@ -231,11 +219,11 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                 </CardHeader>
                 <CardDescription className="px-6 pb-6">
                   {isEditing ? (
-                    <SessionPlayers
-                      players={players}
-                      gameSession={gameSession}
-                      rowSelection={rowSelectionPlayers}
-                      setRowSelection={setRowSelectionPlayers}
+                    <PlayersList
+                      players={playersInCampaign}
+                      rowSelection={playerRowSelection}
+                      setRowSelection={setPlayerRowSelection}
+                      buttonLabel="Add Player"
                     />
                   ) : (
                     <AvatarList<TPlayer>
@@ -253,6 +241,7 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                       npcs={npcsInCampaign}
                       rowSelection={npcRowSelection}
                       setRowSelection={setNpcRowSelection}
+                      buttonLabel="Add NPC"
                     />
                   ) : (
                     <AvatarList<TNpc>
@@ -266,11 +255,11 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
               <Card className=" rounded-xl bg-muted/50 flex relative h-full">
                 <CardDescription className="px-6 pb-6 py-6">
                   {isEditing ? (
-                    <SessionLocations
-                      locations={locations}
-                      gameSession={gameSession}
-                      rowSelection={rowSelectionLocations}
-                      setRowSelection={setRowSelectionLocations}
+                    <LocationsList
+                      locations={locationsInCampaign}
+                      rowSelection={locationRowSelection}
+                      setRowSelection={setLocationRowSelection}
+                      buttonLabel="Add Location"
                     />
                   ) : (
                     <AvatarList<TLocation>

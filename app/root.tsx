@@ -14,7 +14,7 @@ import { Auth } from './lib/auth.server';
 import { readFiles, readItems, readMe } from '@directus/sdk';
 import { NavBar } from './containers/navbar';
 import SidebarLayout from './containers/sidabarLayout';
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { AppContext } from './context/app.context';
 import { getImageUrl } from './lib/utils';
 import { TNpc } from './types/npc';
@@ -83,6 +83,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
         'Locations',
         'campaigns.campaigns_id',
         'type',
+        'sessions.sessions_id',
+        'main_image',
       ],
     })
   );
@@ -163,8 +165,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
             setSelectedCampaignId,
             npcs: data?.npcs ?? [],
             players: data?.players ?? [],
-            locations: [],
-            images: [],
+            locations: data?.locations ?? [],
+            images: data?.images ?? [],
             campaigns: [],
             sessions: [],
           }}

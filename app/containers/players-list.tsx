@@ -1,38 +1,29 @@
 import {
   ColumnDef,
-  ColumnFiltersState,
   getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
   OnChangeFn,
   RowSelectionState,
   useReactTable,
 } from '@tanstack/react-table';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
-import { useState } from 'react';
 import { Checkbox } from '~/components/ui/checkbox';
-import { TNpc } from '~/types/npc';
 import { ListTemplate } from '~/components/ui/list-template';
+import { TPlayer } from '~/types/player';
 
-type TNpcListProps = {
-  npcs?: TNpc[];
+type TPlayersListProps = {
+  players?: TPlayer[];
   rowSelection: RowSelectionState;
   setRowSelection: OnChangeFn<RowSelectionState>;
   buttonLabel?: string;
 };
 
-export const NpcList: React.FC<TNpcListProps> = ({
-  npcs,
+export const PlayersList: React.FC<TPlayersListProps> = ({
+  players,
   rowSelection,
   setRowSelection,
   buttonLabel,
 }) => {
-  const [pagination, setPagination] = useState({
-    pageIndex: 0, //initial page index
-    pageSize: 5, //default page size
-  });
-
-  const columns: ColumnDef<TNpc>[] = [
+  const columns: ColumnDef<TPlayer>[] = [
     {
       id: 'select',
       header: ({ table }) => (
@@ -89,36 +80,27 @@ export const NpcList: React.FC<TNpcListProps> = ({
     },
   ];
 
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-
-  const table = useReactTable<TNpc>({
-    data: npcs ?? [],
+  const table = useReactTable<TPlayer>({
+    data: players ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     onRowSelectionChange: setRowSelection,
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    onPaginationChange: setPagination,
-    globalFilterFn: 'includesString',
     state: {
       rowSelection,
-      columnFilters,
-      pagination,
     },
   });
 
   return (
-    <ListTemplate<TNpc>
+    <ListTemplate<TPlayer>
       rowSelection={rowSelection}
       table={table}
       columns={columns}
-      data={npcs ?? []}
+      data={players ?? []}
       newDataComponent={undefined}
       buttonLabel={buttonLabel}
-      title="Choose NPCs"
-      description="Select the NPCs in this session"
-      selectionLabel="Selected NPCs"
+      title="Choose Players"
+      description="Select players to add to the session"
+      selectionLabel="Selected Players"
     />
   );
 };

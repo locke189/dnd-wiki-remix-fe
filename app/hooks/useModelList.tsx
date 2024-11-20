@@ -41,7 +41,7 @@ export function useModelList<T, M>({
     getInitialRowSelection()
   );
 
-  const getSelectedNpcRelations = (RowSelection: Record<string, boolean>) =>
+  const getSelectedRelations = (RowSelection: Record<string, boolean>) =>
     dataInCampaign
       ?.filter((item, index) =>
         Object.keys(RowSelection).includes(String(index))
@@ -52,6 +52,6 @@ export function useModelList<T, M>({
     rowSelection,
     setRowSelection,
     dataInCampaign,
-    getSelectedNpcRelations,
+    getSelectedRelations,
   };
 }
