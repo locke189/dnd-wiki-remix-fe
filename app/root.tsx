@@ -21,6 +21,7 @@ import { TNpc } from './types/npc';
 import { TPlayer } from './types/player';
 import { TLocation } from './types/location';
 import { TImage } from './types/images';
+import { TSession } from './types/session';
 
 export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -63,9 +64,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   );
 
   const sessions = await client.request(
-    readItems('sessions', {
-      fields: ['name', 'id', 'date', 'campaign'],
-    })
+    readItems('sessions', { fields: ['id', 'name', 'date', 'campaign'] })
   );
 
   const npcs = await client.request(
@@ -146,6 +145,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     players: TPlayer[];
     locations: TLocation[];
     images: TImage[];
+    sessions: TSession[];
   } | null>();
   const [selectedCampaignId, setSelectedCampaignId] = useState<number>(2);
 
@@ -168,7 +168,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             locations: data?.locations ?? [],
             images: data?.images ?? [],
             campaigns: [],
-            sessions: [],
+            sessions: data?.sessions ?? [],
           }}
         >
           {!data?.isUserLoggedIn ? (

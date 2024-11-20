@@ -47,21 +47,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     readItems('sessions', { fields: ['id', 'name', 'date', 'campaign'] })
   );
 
-  const npcs = await client.request(
-    readItems('Npc', {
-      fields: ['*', 'campaigns.*'],
-    })
-  );
-
   return json(
     {
       isUserLoggedIn: true,
       player: { ...player, main_image: getImageUrl(player.main_image) },
       sessions,
-      npcs: npcs.map((npc) => ({
-        ...npc,
-        main_image: getImageUrl(npc.main_image),
-      })),
     },
     {
       headers: {
@@ -113,14 +103,14 @@ export default function Index() {
 
   const { id } = useParams();
 
-  const { player, sessions, npcs } = data || {};
+  const { player, sessions } = data || {};
 
   console.log(data);
 
   return (
     // navbar
     <>
-      <PlayerPage player={player} key={id} sessions={sessions} npcs={npcs} />
+      <PlayerPage player={player} key={id} sessions={sessions} />
       {/* <div className="flex flex-1 flex-col gap-4 p-4">
         <div className="grid auto-rows-min gap-4 lg:grid-cols-3">
           <Card className="aspect-video rounded-xl bg-muted/50 flex items-center relative">

@@ -7,15 +7,27 @@ type TPortalProps = {
 };
 
 export const Portal: React.FC<TPortalProps> = ({ portalId, children }) => {
-  const mount = document.getElementById(portalId);
-  const el = document.createElement('div');
+  const [el, setEl] = React.useState<HTMLDivElement>();
 
   useEffect(() => {
-    mount?.appendChild(el);
-    return () => {
-      mount?.removeChild(el);
-    };
-  }, [el, mount]);
+    if (!document) {
+      return;
+    }
+    const element = document.createElement('div');
+    element.classList.add('w-full');
 
-  return createPortal(children, el);
+    setEl(element);
+  }, []);
+
+  useEffect(() => {
+    const mount = document.getElementById(portalId);
+    if (el) {
+      mount?.appendChild(el);
+      return () => {
+        mount?.removeChild(el);
+      };
+    }
+  }, [el, portalId]);
+
+  return el && createPortal(children, el);
 };

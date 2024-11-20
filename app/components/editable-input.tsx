@@ -14,7 +14,9 @@ type TEditableInputProps = {
   field: FieldValues;
   edit: boolean;
   children: React.ReactNode;
-  type: 'text' | 'date' | 'email' | 'password';
+  type: 'text' | 'date' | 'email' | 'password' | 'number';
+  noLabel?: boolean;
+  placeholder?: string;
 };
 
 export const EditableInput: React.FC<TEditableInputProps> = ({
@@ -23,12 +25,14 @@ export const EditableInput: React.FC<TEditableInputProps> = ({
   edit,
   children,
   type = 'text',
+  noLabel,
+  placeholder,
 }) => {
   return edit ? (
     <>
       {type === 'date' && (
         <>
-          <FormLabel>{fieldName}</FormLabel>
+          {!noLabel && <FormLabel>{fieldName}</FormLabel>}
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>
@@ -60,10 +64,10 @@ export const EditableInput: React.FC<TEditableInputProps> = ({
           </Popover>
         </>
       )}
-      {type === 'text' && (
+      {(type === 'text' || type === 'number') && (
         <>
-          <Label>{fieldName}</Label>
-          <Input {...field} />
+          {!noLabel && <Label>{fieldName}</Label>}
+          <Input {...field} placeholder={placeholder} />
         </>
       )}
     </>

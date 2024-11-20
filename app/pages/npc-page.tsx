@@ -21,7 +21,7 @@ import {
 } from '~/components/ui/form';
 import { EditableInput } from '~/components/editable-input';
 
-import { TPlayer } from '~/types/player';
+import { TPlayer, TPlayerRelationship } from '~/types/player';
 import { TSession } from '~/types/session';
 import {
   classOptions,
@@ -30,11 +30,9 @@ import {
   raceOptions,
 } from '~/models/global';
 import { Portal } from '~/components/portal';
-import { TNpc, TNpcRelationship } from '~/types/npc';
-import { NpcList } from '~/containers/npc-list';
-import { TLocation } from '~/types/location';
+import { TNpc } from '~/types/npc';
 import { AvatarList } from '~/components/avatar-list';
-import { ExternalLink, Pen, Save, Trash } from 'lucide-react';
+import { Pen, Save, Trash } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,32 +55,32 @@ import { ScrollArea } from '~/components/ui/scroll-area';
 import { Separator } from '~/components/ui/separator';
 import { useModelList } from '~/hooks/useModelList';
 import { AppContext } from '~/context/app.context';
+import { PlayersList } from '~/containers/players-list';
 
-type TPlayerPageProps = {
-  player?: TPlayer;
+type TNpcPageProps = {
+  npc?: TNpc;
   isNew?: boolean;
 };
 
-export const PlayerPage: React.FC<TPlayerPageProps> = ({
-  player,
-  isNew = false,
-}) => {
+export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
+  console.log(npc);
   const [submitted, setSubmitted] = React.useState(false);
+
   const [isEditing, setIsEditing] = React.useState(isNew);
 
   const appContext = useContext(AppContext);
-  const { npcs, selectedCampaignId, sessions } = appContext || {};
+  const { sessions, players, selectedCampaignId } = appContext || {};
 
   const fetcher = useFetcher();
   const {
-    rowSelection: npcRowSelection,
-    getSelectedRelations: getSelectedNpcRelations,
-    setRowSelection: setNpcRowSelection,
-    dataInCampaign: npcsInCampaign,
-  } = useModelList<TNpcRelationship, TNpc>({
-    relations: player?.Allied_npcs || [],
-    relationsKey: 'Npc_id',
-    data: npcs || [],
+    rowSelection: playersRowSelection,
+    getSelectedRelations: getSelectedPlayerRelations,
+    setRowSelection: setPlayerRowSelection,
+    dataInCampaign: playersInCampaign,
+  } = useModelList<TPlayerRelationship, TPlayer>({
+    relations: npc?.Allied_Players || [],
+    relationsKey: 'Player_id',
+    data: players || [],
     selectedCampaignId: selectedCampaignId ?? 0,
   });
 
@@ -94,36 +92,34 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
     race: z.string().optional(),
     age: z.string().optional(),
     gender: z.string().optional(),
-    // status: z.string().optional(),
+    status: z.string().optional(),
+    description: z.string().optional(),
     story: z.string().optional(),
-    goals: z.string().optional(),
-    private_goals: z.string().optional(),
-    url: z.string().optional(),
+    master_notes: z.string().optional(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: player?.name ?? '',
-      class: player?.class ?? '',
-      race: player?.race ?? '',
-      age: player?.age ?? '',
-      // status: player?.status ?? '',
-      story: player?.story ?? '',
-      goals: player?.goals ?? '',
-      private_goals: player?.private_goals ?? '',
-      url: player?.url ?? '',
-      gender: player?.gender ?? '',
+      name: npc?.name ?? '',
+      class: npc?.class ?? '',
+      race: npc?.race ?? '',
+      age: npc?.age ?? '0',
+      gender: npc?.gender ?? '',
+      story: npc?.story ?? '',
+      description: npc?.description ?? '',
+      master_notes: npc?.master_notes ?? '',
     },
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    console.log('Submitting');
     setSubmitted(true);
     fetcher.submit(
       {
         data: JSON.stringify({
           ...values,
-          Allied_npcs: getSelectedNpcRelations(npcRowSelection),
+          Allied_Players: getSelectedPlayerRelations(playersRowSelection),
         }),
       },
       {
@@ -138,7 +134,7 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
       {},
       {
         method: 'POST',
-        action: '/player/' + player?.id + '/delete',
+        action: '/Npc/' + npc?.id + '/delete',
       }
     );
   };
@@ -149,8 +145,8 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
     }
   }, [fetcher.state, fetcher.data, submitted]);
 
-  const playerSessions = useMemo(() => {
-    return player?.sessions
+  const npcSessions = useMemo(() => {
+    return npc?.sessions
       ?.map((session) => {
         return sessions?.find((s) => s.id == session.sessions_id);
       })
@@ -159,13 +155,13 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
           new Date(b?.date ?? 0).getTime() - new Date(a?.date ?? 0).getTime()
         );
       });
-  }, [player?.sessions, sessions]);
+  }, [npc?.sessions, sessions]);
 
-  const playerNpcs = npcs?.filter((npc) =>
-    player?.Allied_npcs?.find((n) => n.Npc_id === npc.id)
+  console.log('npcSessions', npcSessions, npc?.sessions, sessions);
+
+  const npcPlayers = players?.filter((player) =>
+    npc?.Allied_Players?.find((p) => p.Player_id === player.id)
   );
-
-  console.log(playerNpcs, player?.Allied_npcs, player);
 
   return (
     // navbar
@@ -197,7 +193,7 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
                 />
                 {!isEditing && (
                   <p className="text-xl text-slate-500 align-middle">
-                    {`${player?.gender} - ${player?.race} - ${player?.class} - ${player?.age} `}
+                    {`${npc?.gender} - ${npc?.race} - ${npc?.class} - ${npc?.age} `}
                   </p>
                 )}
               </div>
@@ -261,12 +257,12 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
               <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-8">
                 <FormField
                   control={form.control}
-                  name="story"
+                  name="description"
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
                         <EditableText
-                          fieldName="Story"
+                          fieldName="Description"
                           field={field}
                           edit={isEditing}
                           defaultOpen
@@ -275,15 +271,14 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
-                  name="goals"
+                  name="story"
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
                         <EditableText
-                          fieldName="Goals"
+                          fieldName="Story"
                           field={field}
                           edit={isEditing}
                         />
@@ -291,15 +286,14 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
-                  name="private_goals"
+                  name="master_notes"
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
                         <EditableText
-                          fieldName="Private Goals"
+                          fieldName="Notes"
                           field={field}
                           edit={isEditing}
                         />
@@ -314,7 +308,7 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
                 <CardHeader
                   className="rounded-t-xl bg-muted/50 h-[200px]"
                   style={{
-                    backgroundImage: `url('${player?.main_image}')`,
+                    backgroundImage: `url('${npc?.main_image}')`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     backgroundRepeat: 'no-repeat',
@@ -324,32 +318,18 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
                   {!isEditing && (
                     <>
                       <div className="flex flex-col gap-4">
-                        {player?.url && (
-                          <Button variant="outline">
-                            <Link
-                              to={player?.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="flex gap-2"
-                            >
-                              Character Sheet
-                              <ExternalLink />
-                            </Link>
-                          </Button>
-                        )}
-
                         <div>
-                          <AvatarList<TNpc>
-                            title="Allied NPCs"
-                            data={playerNpcs}
-                            routePrefix="/npc/"
+                          <AvatarList<TPlayer>
+                            title="Allied Players"
+                            data={npcPlayers}
+                            routePrefix="/player/"
                           />
                         </div>
                         <div className="flex flex-col gap-2">
                           <h2 className="text-lg font-bold">Sessions</h2>
                           <ScrollArea className="h-32 w-full rounded-md border">
                             <div className="p-4" key={1}>
-                              {playerSessions?.map((session?: TSession) => (
+                              {npcSessions?.map((session?: TSession) => (
                                 <Link
                                   to={'/session/' + session?.id}
                                   key={session?.id}
@@ -484,11 +464,11 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
                             </FormItem>
                           )}
                         />
-                        <NpcList
-                          npcs={npcsInCampaign}
-                          rowSelection={npcRowSelection}
-                          setRowSelection={setNpcRowSelection}
-                          buttonLabel="Choose Allied NPCs"
+                        <PlayersList
+                          players={playersInCampaign}
+                          rowSelection={playersRowSelection}
+                          setRowSelection={setPlayerRowSelection}
+                          buttonLabel="Choose Allied Players"
                         />
                       </>
                     </div>
