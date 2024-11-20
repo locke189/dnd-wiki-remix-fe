@@ -46,12 +46,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     })
   );
 
-  const npcs = await client.request(
-    readItems('Npc', {
-      fields: ['*', 'campaigns.*'],
-    })
-  );
-
   const players = await client.request(
     readItems('Player', {
       fields: ['*', 'campaigns.*'],
@@ -91,10 +85,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         ...player,
         main_image: getImageUrl(player.main_image),
       })),
-      npcs: npcs.map((npc) => ({
-        ...npc,
-        main_image: getImageUrl(npc.main_image),
-      })),
+
       locations: locations.map((location) => ({
         ...location,
         main_image: getImageUrl(location.main_image),
@@ -151,7 +142,6 @@ export default function Index() {
     isUserLoggedIn: boolean;
     gameSession: TSession;
     players?: TPlayer[];
-    npcs?: TNpc[];
     locations?: TLocation[];
     images?: TImage[];
     campaigns?: TCampaign[];
@@ -159,14 +149,13 @@ export default function Index() {
 
   console.log('data', data);
 
-  const { gameSession, players, npcs, locations } = data || {};
+  const { gameSession, players, locations } = data || {};
   return (
     // navbar
     <SessionPage
       gameSession={gameSession}
       key={id}
       players={players}
-      npcs={npcs}
       locations={locations}
     />
   );

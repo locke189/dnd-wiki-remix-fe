@@ -41,12 +41,14 @@ type TNpcListProps = {
   npcs?: TNpc[];
   rowSelection: RowSelectionState;
   setRowSelection: OnChangeFn<RowSelectionState>;
+  buttonLabel?: string;
 };
 
 export const NpcList: React.FC<TNpcListProps> = ({
   npcs,
   rowSelection,
   setRowSelection,
+  buttonLabel,
 }) => {
   const [pagination, setPagination] = useState({
     pageIndex: 0, //initial page index
@@ -130,14 +132,14 @@ export const NpcList: React.FC<TNpcListProps> = ({
   });
 
   return (
-    <>
+    <div>
       <Dialog onOpenChange={() => table.setGlobalFilter('')}>
         <DialogTrigger asChild>
-          <Button variant="outline">Choose NPCs</Button>
+          <Button variant="outline">{buttonLabel ?? 'Choose NPCs'}</Button>
         </DialogTrigger>
         <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle>Choose NPCs</DialogTitle>
+            <DialogTitle>{buttonLabel ?? 'Choose NPCs'}</DialogTitle>
             <DialogDescription>
               Select the NPCs in this session
             </DialogDescription>
@@ -235,9 +237,9 @@ export const NpcList: React.FC<TNpcListProps> = ({
       <p className="mt-3">
         Selected Npcs:{' '}
         {Object.keys(rowSelection)
-          .map((index) => npcs?.[index].name)
+          .map((index) => npcs?.[Number(index)]?.name ?? '')
           .join(', ')}
       </p>
-    </>
+    </div>
   );
 };

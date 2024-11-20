@@ -396,16 +396,19 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
                             </FormItem>
                           )}
                         />
-                        <NpcList
-                          npcs={npcsInCampaign}
-                          rowSelection={npcRowSelection}
-                          setRowSelection={setNpcRowSelection}
-                        />
                       </>
                     </div>
                   )}
                 </CardHeader>
               </Card>
+            </div>
+            <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-8">
+              <NpcList
+                npcs={npcsInCampaign}
+                rowSelection={npcRowSelection}
+                setRowSelection={setNpcRowSelection}
+                buttonLabel="Choose Allied NPCs"
+              />
             </div>
             <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-8">
               <FormField

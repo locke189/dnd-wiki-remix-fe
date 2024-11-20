@@ -14,7 +14,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem } from '~/components/ui/form';
 import { EditableInput } from '~/components/editable-input';
-import { format, set } from 'date-fns';
+import { format } from 'date-fns';
 
 import { SessionPlayers } from '~/containers/session-players';
 import { TPlayer } from '~/types/player';
@@ -22,7 +22,7 @@ import { TSession } from '~/types/session';
 import { LAYOUT_PAGE_HEADER_PORTAL_ID } from '~/models/global';
 import { Portal } from '~/components/portal';
 import { TNpc, TNpcRelationship } from '~/types/npc';
-import { NpcList, SessionNpcs } from '~/containers/npc-list';
+import { NpcList } from '~/containers/npc-list';
 import { TLocation } from '~/types/location';
 import { SessionLocations } from '~/containers/session-locations';
 import { AvatarList } from '~/components/avatar-list';
@@ -44,7 +44,6 @@ import { AppContext } from '~/context/app.context';
 type TSessionPageProps = {
   gameSession?: TSession;
   players?: TPlayer[];
-  npcs?: TNpc[];
   locations?: TLocation[];
   isNew?: boolean;
 };
