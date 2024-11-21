@@ -32,8 +32,6 @@ import {
 import { Portal } from '~/components/portal';
 import { TNpc, TNpcRelationship } from '~/types/npc';
 import { NpcList } from '~/containers/npc-list';
-import { TLocation } from '~/types/location';
-import { AvatarList } from '~/components/avatar-list';
 import { ExternalLink, Pen, Save, Trash } from 'lucide-react';
 import {
   AlertDialog,
@@ -57,6 +55,7 @@ import { ScrollArea } from '~/components/ui/scroll-area';
 import { Separator } from '~/components/ui/separator';
 import { useModelList } from '~/hooks/useModelList';
 import { AppContext } from '~/context/app.context';
+import { AvatarList } from '~/components/avatar-list';
 
 type TPlayerPageProps = {
   player?: TPlayer;

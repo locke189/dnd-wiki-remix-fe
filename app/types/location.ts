@@ -1,3 +1,4 @@
+import { TNpcRelationship } from './npc';
 import { TSessionRelationship } from './session';
 
 export type TLocationType =
@@ -39,12 +40,14 @@ export type TLocation = {
   description: string;
   master_notes: string;
   parent_location: number;
-  locations: TLocation[];
   campaigns: {
     campaigns_id: number;
   }[];
+  Npcs: TNpcRelationship[];
   sessions: TSessionRelationship[];
-  Locations: TLocationsRelationship[];
+  sub_locations: TLocation[];
+  Parties: { Parties_id: number }[];
+  items: { Items_id: number }[];
 };
 
 export type TLocationsRelationship = {

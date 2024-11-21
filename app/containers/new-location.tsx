@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DialogPortal } from '@radix-ui/react-dialog';
-import { useFetcher, useLoaderData } from '@remix-run/react';
+import { useFetcher } from '@remix-run/react';
 import { Check, ChevronsUpDown, CircleOff } from 'lucide-react';
 import { useContext, useEffect, useState } from 'react';
 import { Form, useForm } from 'react-hook-form';
@@ -49,7 +49,6 @@ import { AppContext } from '~/context/app.context';
 import { getLocationOptions } from '~/lib/locations';
 import { cn } from '~/lib/utils';
 import { locationTypeOptions } from '~/models/global';
-import { TCampaign } from '~/types/campaigns';
 import { TImage } from '~/types/images';
 import { TLocation } from '~/types/location';
 
@@ -66,13 +65,16 @@ export const NewLocation: React.FC<TNewLocationProps> = ({ children }) => {
   const [imageFilters, setImageFilters] = useState<string[]>(['location']);
 
   // TODO: move this to the context
-  const data = useLoaderData();
-  const images = data?.images as TImage[];
-  const campaigns = data?.campaigns as TCampaign[];
-  const locations = data?.locations as TLocation[];
+  // const data = useLoaderData();
+  // const images = data?.images as TImage[];
+  // const campaigns = data?.campaigns as TCampaign[];
+  // const locations = data?.locations as TLocation[];
 
   const appContext = useContext(AppContext);
   const selectedCampaignId = appContext?.selectedCampaignId;
+  const images = appContext?.images as TImage[];
+  // const campaigns = appContext?.campaigns as TCampaign[];
+  const locations = appContext?.locations as TLocation[];
 
   const fetcher = useFetcher();
 

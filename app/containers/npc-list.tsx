@@ -12,7 +12,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import { useState } from 'react';
 import { Checkbox } from '~/components/ui/checkbox';
 import { TNpc } from '~/types/npc';
-import { ListTemplate } from '~/components/ui/list-template';
+import { ListTemplate } from '~/components/list-template';
+import { NewNpc } from './new-npc';
+import { PlusCircleIcon } from 'lucide-react';
+import { Button } from '~/components/ui/button';
 
 type TNpcListProps = {
   npcs?: TNpc[];
@@ -114,7 +117,13 @@ export const NpcList: React.FC<TNpcListProps> = ({
       table={table}
       columns={columns}
       data={npcs ?? []}
-      newDataComponent={undefined}
+      newDataComponent={
+        <NewNpc>
+          <Button type="button">
+            <PlusCircleIcon />
+          </Button>
+        </NewNpc>
+      }
       buttonLabel={buttonLabel}
       title="Choose NPCs"
       description="Select the NPCs in this session"

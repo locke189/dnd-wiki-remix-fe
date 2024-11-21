@@ -20,7 +20,7 @@ import {
 } from '~/components/ui/sidebar';
 import { AppContext } from '~/context/app.context';
 import { mapLocationTypeToIcon } from '~/lib/locations';
-import { TLocationType } from '~/types/location';
+import { TLocation, TLocationType } from '~/types/location';
 import { TNpc } from '~/types/npc';
 
 export type TSession = {
@@ -34,15 +34,6 @@ export type TPlayer = {
   id: number;
   name: string;
   campaigns: { campaigns_id: number }[];
-};
-
-export type TLocation = {
-  id: number;
-  name: string;
-  campaigns: { campaigns_id: number }[];
-  Locations: number[];
-  parent_location: number;
-  type: TLocationType;
 };
 
 export type TAppSidebarContentProps = {
@@ -90,7 +81,7 @@ export const AppSidebarContent: React.FC = () => {
       )
       .sort((a, b) => (a.type > b.type ? -1 : 1))
       .map((location) => {
-        if (location.Locations.length > 0) {
+        if (location.sub_locations.length > 0) {
           return (
             <Collapsible className="group/collapsible" key={location.id}>
               <SidebarMenuItem className="pr-0 mr-0">

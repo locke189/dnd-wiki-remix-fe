@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import { Checkbox } from '~/components/ui/checkbox';
-import { ListTemplate } from '~/components/ui/list-template';
+import { ListTemplate } from '~/components/list-template';
 import { TPlayer } from '~/types/player';
 
 type TPlayersListProps = {

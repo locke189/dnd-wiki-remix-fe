@@ -5,7 +5,7 @@ import {
 } from '@remix-run/node';
 import { redirect, useLoaderData } from '@remix-run/react';
 import { Auth } from '~/lib/auth.server';
-import { readItem } from '@directus/sdk';
+import { readItem, updateItem } from '@directus/sdk';
 import { commitSession } from '~/lib/sessions.server';
 import {
   Card,
@@ -14,6 +14,9 @@ import {
   CardTitle,
 } from '~/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
+import { getImageUrl } from '~/lib/utils';
+import { TLocation } from '~/types/location';
+import { LocationPage } from '~/pages/location-page';
 
 export const meta: MetaFunction = () => {
   return [
@@ -21,6 +24,38 @@ export const meta: MetaFunction = () => {
     { name: 'description', content: 'Welcome!' },
   ];
 };
+
+export async function action({ request, params }: ActionFunctionArgs) {
+  const { client, isUserLoggedIn, getRequestHeaders, session } = await Auth(
+    request
+  );
+
+  const body = await request.formData();
+  const { id } = params;
+
+  if (!isUserLoggedIn || client === null || !id) {
+    return redirect('/login', {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    });
+  }
+
+  const data = JSON.parse(String(body.get('data')));
+
+  const gameSession = await client.request(
+    updateItem('Locations', id, data as object)
+  );
+
+  return json(
+    { data: gameSession },
+    {
+      headers: {
+        ...(await getRequestHeaders()),
+      },
+    }
+  );
+}
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { client, isUserLoggedIn, getRequestHeaders, session } = await Auth(
@@ -39,17 +74,23 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   const location = await client.request(
     readItem('Locations', id, {
-      fields: ['*'],
+      fields: [
+        '*',
+        'campaigns.*',
+        'sessions.*',
+        'sub_locations.*',
+        'Npcs.*',
+        'Parties.*',
+        'items.*',
+      ],
     })
   );
 
-  const locationWithImages = {
-    ...location,
-    main_image_url: `${process.env.DB_DOMAIN}:${process.env.DB_PORT}/assets/${location.main_image}`,
-  };
-
   return json(
-    { isUserLoggedIn: true, location: locationWithImages },
+    {
+      isUserLoggedIn: true,
+      location: { ...location, main_image: getImageUrl(location.main_image) },
+    },
     {
       headers: {
         ...(await getRequestHeaders()),
@@ -61,14 +102,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 export default function Index() {
   const data = useLoaderData<{
     isUserLoggedIn: boolean;
-    location: {
-      name: string;
-      id: string;
-      main_image?: string;
-      main_image_url?: string;
-      description?: string;
-      master_notes?: string;
-    };
+    location: TLocation;
   } | null>();
 
   const { location } = data || {};
@@ -76,42 +110,7 @@ export default function Index() {
   return (
     // navbar
     <>
-      <div className="flex flex-1 flex-col gap-4 p-4">
-        <div className="grid auto-rows-min gap-4 lg:grid-cols-3">
-          <Card className="aspect-video rounded-xl bg-muted/50 flex items-center relative">
-            {location?.main_image_url && (
-              <Avatar className="h-full w-full rounded-xl absolute ">
-                <AvatarImage
-                  src={location?.main_image_url}
-                  className="object-cover"
-                />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-            )}
-          </Card>
-          <Card className="aspect-video rounded-xl bg-muted/50">
-            <CardHeader>
-              <CardTitle>{location?.name}</CardTitle>
-              <CardDescription></CardDescription>
-            </CardHeader>
-          </Card>
-          <Card className="aspect-video rounded-xl bg-muted/50"></Card>
-        </div>
-        <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-8">
-          {location?.description && (
-            <article className="container mx-auto">
-              <h2 className="text-xl font-bold my-4">Description</h2>
-              <p className="text-base">{location?.description}</p>
-            </article>
-          )}
-          {location?.master_notes && (
-            <article className="container mx-auto my-8">
-              <h2 className="text-xl font-bold my-4">Notes</h2>
-              <p className="text-base">{location?.master_notes}</p>
-            </article>
-          )}
-        </div>
-      </div>
+      <LocationPage location={location} key={location?.id} />
     </>
   );
 }

@@ -79,7 +79,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         'name',
         'id',
         'parent_location',
-        'Locations',
+        'sub_locations',
         'campaigns.campaigns_id',
         'type',
         'sessions.sessions_id',
