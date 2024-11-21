@@ -15,3 +15,7 @@ export type TSession = {
   Npcs: TNpcRelationship[];
   Locations: TLocationsRelationship[];
 };
+
+export type TSessionRelationship = {
+  sessions_id: number;
+};

@@ -1,3 +1,5 @@
+import { TSessionRelationship } from './session';
+
 export type TLocationType =
   | 'plane'
   | 'realm'
@@ -41,9 +43,7 @@ export type TLocation = {
   campaigns: {
     campaigns_id: number;
   }[];
-  sessions: {
-    sessions_id: number;
-  }[];
+  sessions: TSessionRelationship[];
   Locations: TLocationsRelationship[];
 };
 

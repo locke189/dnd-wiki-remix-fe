@@ -1,5 +1,6 @@
 import { TLocationsRelationship } from './location';
 import { TPlayerRelationship } from './player';
+import { TSessionRelationship } from './session';
 
 export type TNpc = {
   name: string;
@@ -19,9 +20,7 @@ export type TNpc = {
   campaigns: {
     campaigns_id: number;
   }[];
-  sessions: {
-    sessions_id: number;
-  }[];
+  sessions: TSessionRelationship[];
 };
 
 export type TNpcRelationship = {

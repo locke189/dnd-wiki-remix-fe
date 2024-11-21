@@ -56,6 +56,8 @@ import { Separator } from '~/components/ui/separator';
 import { useModelList } from '~/hooks/useModelList';
 import { AppContext } from '~/context/app.context';
 import { PlayersList } from '~/containers/players-list';
+import { TLocation, TLocationsRelationship } from '~/types/location';
+import { LocationsList } from '~/containers/locations-list';
 
 type TNpcPageProps = {
   npc?: TNpc;
@@ -69,7 +71,7 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
   const [isEditing, setIsEditing] = React.useState(isNew);
 
   const appContext = useContext(AppContext);
-  const { sessions, players, selectedCampaignId } = appContext || {};
+  const { sessions, players, locations, selectedCampaignId } = appContext || {};
 
   const fetcher = useFetcher();
   const {
@@ -83,6 +85,18 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
     data: players || [],
     selectedCampaignId: selectedCampaignId ?? 0,
   });
+
+  const {
+    dataInCampaign: locationsInCampaign,
+    rowSelection: locationRowSelection,
+    getSelectedRelations: getSelectedLocationRelations,
+    setRowSelection: setLocationRowSelection,
+  } = useModelList<TLocationsRelationship, TLocation>({
+    relations: npc?.Locations || [],
+    relationsKey: 'Locations_id',
+    data: locations || [],
+    selectedCampaignId: selectedCampaignId ?? 0,
+  }); // sessions
 
   // const isLoading = fetcher.state === 'loading';
 
@@ -120,6 +134,7 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
         data: JSON.stringify({
           ...values,
           Allied_Players: getSelectedPlayerRelations(playersRowSelection),
+          Locations: getSelectedLocationRelations(locationRowSelection),
         }),
       },
       {
@@ -161,6 +176,10 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
 
   const npcPlayers = players?.filter((player) =>
     npc?.Allied_Players?.find((p) => p.Player_id === player.id)
+  );
+
+  const npcLocations = locations?.filter((location) =>
+    npc?.Locations?.find((l) => l.Locations_id === location.id)
   );
 
   return (
@@ -319,6 +338,13 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
                     <>
                       <div className="flex flex-col gap-4">
                         <div>
+                          <AvatarList<TLocation>
+                            title="Locations"
+                            data={npcLocations}
+                            routePrefix="/location/"
+                          />
+                        </div>
+                        <div>
                           <AvatarList<TPlayer>
                             title="Allied Players"
                             data={npcPlayers}
@@ -345,133 +371,145 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
                     </>
                   )}
                   {isEditing && (
-                    <div
-                      className={
-                        isEditing
-                          ? 'grid space-y-0 auto-rows-min md:grid-cols-2 gap-2'
-                          : ''
-                      }
-                    >
-                      <>
-                        <FormField
-                          control={form.control}
-                          name="age"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <EditableInput
-                                  fieldName="Age"
-                                  field={field}
-                                  edit={isEditing}
-                                  type="text"
-                                >
-                                  <CardDescription>
-                                    {field?.value}
-                                  </CardDescription>
-                                </EditableInput>
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
+                    <>
+                      <div
+                        className={
+                          isEditing
+                            ? 'grid space-y-0 auto-rows-min md:grid-cols-2 gap-2'
+                            : ''
+                        }
+                      >
+                        <>
+                          <FormField
+                            control={form.control}
+                            name="age"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <EditableInput
+                                    fieldName="Age"
+                                    field={field}
+                                    edit={isEditing}
+                                    type="text"
+                                  >
+                                    <CardDescription>
+                                      {field?.value}
+                                    </CardDescription>
+                                  </EditableInput>
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
 
-                        <FormField
-                          control={form.control}
-                          name="gender"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Gender</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                value={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select a gender..." />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {genderOptions.map((option) => (
-                                    <SelectItem
-                                      key={option.value}
-                                      value={option.value}
-                                    >
-                                      {option.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="race"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Race</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                value={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select a race..." />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {raceOptions.map((option) => (
-                                    <SelectItem
-                                      key={option.value}
-                                      value={option.value}
-                                    >
-                                      {option.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="class"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Class</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                value={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select a class..." />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {classOptions.map((option) => (
-                                    <SelectItem
-                                      key={option.value}
-                                      value={option.value}
-                                    >
-                                      {option.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </FormItem>
-                          )}
-                        />
+                          <FormField
+                            control={form.control}
+                            name="gender"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Gender</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select a gender..." />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {genderOptions.map((option) => (
+                                      <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                      >
+                                        {option.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="race"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Race</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select a race..." />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {raceOptions.map((option) => (
+                                      <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                      >
+                                        {option.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="class"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Class</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select a class..." />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {classOptions.map((option) => (
+                                      <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                      >
+                                        {option.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormItem>
+                            )}
+                          />
+                        </>
+                      </div>
+                      <div className="my-4 flex flex-col gap-2">
+                        <h2 className="text-lg font-bold">Allied Players</h2>
                         <PlayersList
                           players={playersInCampaign}
                           rowSelection={playersRowSelection}
                           setRowSelection={setPlayerRowSelection}
                           buttonLabel="Choose Allied Players"
                         />
-                      </>
-                    </div>
+                        <h2 className="text-lg font-bold">Locations</h2>
+                        <LocationsList
+                          locations={locationsInCampaign}
+                          rowSelection={locationRowSelection}
+                          setRowSelection={setLocationRowSelection}
+                          buttonLabel="Choose Locations"
+                        />
+                      </div>
+                    </>
                   )}
                 </CardContent>
               </Card>

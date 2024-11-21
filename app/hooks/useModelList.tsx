@@ -2,16 +2,20 @@ import { useCallback, useMemo, useState } from 'react';
 
 export type TRelationship = Record<string, boolean>;
 
-export type TUseModelList<T, M> = {
+export type TModel = {
+  id: number;
+  campaigns?: { campaigns_id: number }[];
+  campaign?: number;
+};
+
+export type TUseModelList<T, M extends TModel> = {
   relations: T[];
   relationsKey: keyof T;
-  data: M extends { id: number; campaigns: { campaigns_id: number }[] }
-    ? M[]
-    : never;
+  data: M[];
   selectedCampaignId: number;
 };
 
-export function useModelList<T, M>({
+export function useModelList<T, M extends TModel>({
   relations,
   relationsKey,
   data,
@@ -19,10 +23,11 @@ export function useModelList<T, M>({
 }: TUseModelList<T, M>) {
   const dataInCampaign = useMemo(
     () =>
-      data?.filter((item) =>
-        item.campaigns.some(
-          (campaign) => campaign.campaigns_id === selectedCampaignId
-        )
+      data?.filter(
+        (item) =>
+          item.campaigns?.some(
+            (campaign) => campaign.campaigns_id === selectedCampaignId
+          ) || item.campaign === selectedCampaignId
       ),
     [data, selectedCampaignId]
   );
