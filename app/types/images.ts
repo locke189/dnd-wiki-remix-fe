@@ -17,7 +17,7 @@ export type TImage = {
   modified_by: null | string;
   modified_on: string;
   storage: string;
-  tags: null | string[];
+  tags: string[];
   title: string;
   tus_data: null | string;
   tus_id: null | string;

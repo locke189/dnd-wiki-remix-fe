@@ -65,7 +65,6 @@ type TNpcPageProps = {
 };
 
 export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
-  console.log(npc);
   const [submitted, setSubmitted] = React.useState(false);
 
   const [isEditing, setIsEditing] = React.useState(isNew);
@@ -171,8 +170,6 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
         );
       });
   }, [npc?.sessions, sessions]);
-
-  console.log('npcSessions', npcSessions, npc?.sessions, sessions);
 
   const npcPlayers = players?.filter((player) =>
     npc?.Allied_Players?.find((p) => p.Player_id === player.id)

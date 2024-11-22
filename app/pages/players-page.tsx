@@ -164,8 +164,6 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
     player?.Allied_npcs?.find((n) => n.Npc_id === npc.id)
   );
 
-  console.log(playerNpcs, player?.Allied_npcs, player);
-
   return (
     // navbar
     <>

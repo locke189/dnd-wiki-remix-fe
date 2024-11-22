@@ -105,8 +105,6 @@ export default function Index() {
 
   const { player, sessions } = data || {};
 
-  console.log(data);
-
   return (
     // navbar
     <>

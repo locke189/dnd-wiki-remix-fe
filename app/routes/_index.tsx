@@ -27,8 +27,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })
   );
 
-  console.log('user', user);
-
   return json(
     { isUserLoggedIn: true },
     {

@@ -129,8 +129,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   const data = JSON.parse(String(body.get('data')));
 
-  console.log(data);
-
   const gameSession = await client.request(
     createItem('sessions', data as object)
   );

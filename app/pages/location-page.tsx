@@ -75,7 +75,6 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
   location,
   isNew = false,
 }) => {
-  console.log(location);
   const [submitted, setSubmitted] = React.useState(false);
 
   const [isEditing, setIsEditing] = React.useState(isNew);

@@ -5,6 +5,7 @@ import { CircleOff } from 'lucide-react';
 import { useContext, useEffect, useState } from 'react';
 import { Form, useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { ImageChooser } from '~/components/image-chooser';
 import { Button } from '~/components/ui/button';
 import {
   Dialog,
@@ -46,8 +47,8 @@ export const NewNpc: React.FC<TNewNpc> = ({ children }) => {
   const [open, setOpen] = useState(false);
 
   const [selectedImageId, setSelectedImageId] = useState('0');
-  const [chooseImage, setChooseImage] = useState(false);
-  const [imageFilters, setImageFilters] = useState<string[]>(['npc']);
+  // const [chooseImage, setChooseImage] = useState(false);
+  // const [imageFilters, setImageFilters] = useState<string[]>(['npc']);`
 
   const appContext = useContext(AppContext);
   const selectedCampaignId = appContext?.selectedCampaignId;
@@ -84,8 +85,8 @@ export const NewNpc: React.FC<TNewNpc> = ({ children }) => {
       {
         data: JSON.stringify({
           ...values,
-          ...(Number(selectedImageId) && {
-            main_image: Number(selectedImageId),
+          ...(selectedImageId && {
+            main_image: selectedImageId,
           }),
           campaigns: [
             {
@@ -117,22 +118,22 @@ export const NewNpc: React.FC<TNewNpc> = ({ children }) => {
     }
   }, [fetcher.state, fetcher.data, submitted]);
 
-  const selectedImage = images.find((image) => image.id === selectedImageId);
+  // const selectedImage = images.find((image) => image.id === selectedImageId);
 
-  const onFormChange = () => {
-    const selectedGender = form.getValues('gender');
-    const selectedRace = form.getValues('race');
-    // update filters if values are not empty
-    setImageFilters(
-      [selectedGender ?? '', selectedRace ?? '', 'npc'].filter(Boolean)
-    );
-  };
+  // const onFormChange = () => {
+  //   const selectedGender = form.getValues('gender');
+  //   const selectedRace = form.getValues('race');
+  //   // update filters if values are not empty
+  //   setImageFilters(
+  //     [selectedGender ?? '', selectedRace ?? '', 'npc'].filter(Boolean)
+  //   );
+  // };
 
-  const filteredImages = images.filter((image) => {
-    return imageFilters.every((filter) => {
-      return image.tags?.includes(filter);
-    });
-  });
+  // const filteredImages = images?.filter((image) => {
+  //   return imageFilters.every((filter) => {
+  //     return image.tags?.includes(filter);
+  //   });
+  // });
 
   return (
     <>
@@ -142,7 +143,7 @@ export const NewNpc: React.FC<TNewNpc> = ({ children }) => {
           <DialogContent className="max-w-xl">
             <Form {...form}>
               <form
-                onChange={onFormChange}
+                // onChange={onFormChange}
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-8"
               >
@@ -257,7 +258,7 @@ export const NewNpc: React.FC<TNewNpc> = ({ children }) => {
                     />
                   </div>
 
-                  <ScrollArea className="w-auto whitespace-nowrap rounded-md border h-40">
+                  {/* <ScrollArea className="w-auto whitespace-nowrap rounded-md border h-40">
                     {!chooseImage && (
                       <div className="flex flex-wrap gap-3 p-4 justify-center">
                         <div
@@ -320,7 +321,13 @@ export const NewNpc: React.FC<TNewNpc> = ({ children }) => {
                       </div>
                     )}
                     <ScrollBar orientation="vertical" />
-                  </ScrollArea>
+                  </ScrollArea> */}
+
+                  <ImageChooser
+                    images={images ?? []}
+                    selectedImageId={selectedImageId}
+                    setSelectedImageId={setSelectedImageId}
+                  />
 
                   <FormField
                     control={form.control}
