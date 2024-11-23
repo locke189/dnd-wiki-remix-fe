@@ -59,7 +59,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const players = await client.request(
     readItems('Player', {
-      fields: ['name', 'id', 'campaigns.campaigns_id'],
+      fields: ['name', 'id', 'campaigns.campaigns_id', 'main_image'],
     })
   );
 

@@ -89,7 +89,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return json(
     {
       isUserLoggedIn: true,
-      location: { ...location, main_image: getImageUrl(location.main_image) },
+      location: {
+        ...location,
+        main_image: getImageUrl(location.main_image),
+        sub_locations: location.sub_locations.map((l: TLocation) => ({
+          ...l,
+          main_image: getImageUrl(l.main_image),
+        })),
+      },
     },
     {
       headers: {

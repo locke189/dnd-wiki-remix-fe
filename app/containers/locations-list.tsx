@@ -13,6 +13,9 @@ import { useState } from 'react';
 import { Checkbox } from '~/components/ui/checkbox';
 import { ListTemplate } from '~/components/list-template';
 import { TLocation } from '~/types/location';
+import { NewLocation } from './new-location';
+import { Button } from '~/components/ui/button';
+import { Plus } from 'lucide-react';
 
 type TLocationsListProps = {
   locations?: TLocation[];
@@ -114,7 +117,13 @@ export const LocationsList: React.FC<TLocationsListProps> = ({
       table={table}
       columns={columns}
       data={locations ?? []}
-      newDataComponent={undefined}
+      newDataComponent={
+        <NewLocation>
+          <Button type="button">
+            <Plus />
+          </Button>
+        </NewLocation>
+      }
       buttonLabel={buttonLabel}
       title="Choose locations"
       description="Select the locations in this session"

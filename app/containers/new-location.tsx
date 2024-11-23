@@ -1,10 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DialogPortal } from '@radix-ui/react-dialog';
 import { useFetcher } from '@remix-run/react';
-import { Check, ChevronsUpDown, CircleOff } from 'lucide-react';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { useContext, useEffect, useState } from 'react';
 import { Form, useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { ImageChooser } from '~/components/image-chooser';
 import { Button } from '~/components/ui/button';
 import {
   Command,
@@ -36,7 +37,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '~/components/ui/popover';
-import { ScrollArea, ScrollBar } from '~/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -60,8 +60,7 @@ export const NewLocation: React.FC<TNewLocationProps> = ({ children }) => {
   const [submitted, setSubmitted] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const [selectedImageId, setSelectedImageId] = useState('0');
-  const [chooseImage, setChooseImage] = useState(false);
+  const [selectedImageId, setSelectedImageId] = useState('');
   const [imageFilters, setImageFilters] = useState<string[]>(['location']);
 
   // TODO: move this to the context
@@ -133,8 +132,6 @@ export const NewLocation: React.FC<TNewLocationProps> = ({ children }) => {
       setOpen(false);
     }
   }, [fetcher.state, fetcher.data, submitted]);
-
-  const selectedImage = images.find((image) => image.id === selectedImageId);
 
   const onFormChange = () => {
     const selectedType = form.getValues('type');
@@ -279,70 +276,11 @@ export const NewLocation: React.FC<TNewLocationProps> = ({ children }) => {
                     />
                   </div>
 
-                  <ScrollArea className="w-auto whitespace-nowrap rounded-md border h-40">
-                    {!chooseImage && (
-                      <div className="flex flex-wrap gap-3 p-4 justify-center">
-                        <div
-                          className="w-32 h-32 flex items-center justify-center border"
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => setChooseImage(true)}
-                          onKeyDown={() => setChooseImage(true)}
-                        >
-                          {selectedImage && (
-                            <img
-                              src={selectedImage.src}
-                              alt={selectedImage.id}
-                              className="w-full h-full object-cover rounded-md"
-                            />
-                          )}
-                          {!selectedImage && <CircleOff />}
-                        </div>
-                      </div>
-                    )}
-                    {chooseImage && (
-                      <div className="flex flex-wrap gap-3 p-4 justify-center">
-                        <div
-                          className="w-20 h-20 flex items-center justify-center border"
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => {
-                            setChooseImage(false);
-                            setSelectedImageId('0');
-                          }}
-                          onKeyDown={() => {
-                            setChooseImage(false);
-                            setSelectedImageId('0');
-                          }}
-                        >
-                          <CircleOff />
-                        </div>
-                        {filteredImages.map((image) => (
-                          <div
-                            key={image.id}
-                            className="w-20 h-20"
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => {
-                              setChooseImage(false);
-                              setSelectedImageId(image.id);
-                            }}
-                            onKeyDown={() => {
-                              setChooseImage(false);
-                              setSelectedImageId(image.id);
-                            }}
-                          >
-                            <img
-                              src={image.src}
-                              alt={image.id}
-                              className="w-full h-full object-cover rounded-md"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <ScrollBar orientation="vertical" />
-                  </ScrollArea>
+                  <ImageChooser
+                    images={filteredImages}
+                    setSelectedImageId={setSelectedImageId}
+                    selectedImageId={selectedImageId}
+                  />
 
                   <FormField
                     control={form.control}

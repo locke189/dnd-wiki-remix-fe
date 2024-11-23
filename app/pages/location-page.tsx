@@ -65,6 +65,7 @@ import {
   CommandList,
 } from '~/components/ui/command';
 import { NpcList } from '~/containers/npc-list';
+import { ImageChooser } from '~/components/image-chooser';
 
 type TLocationPageProps = {
   location?: TLocation;
@@ -78,9 +79,13 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
   const [submitted, setSubmitted] = React.useState(false);
 
   const [isEditing, setIsEditing] = React.useState(isNew);
+  const [selectedImageId, setSelectedImageId] = React.useState<string>(
+    location?.main_image.split('/').pop() ?? ''
+  );
 
   const appContext = useContext(AppContext);
-  const { sessions, npcs, locations, selectedCampaignId } = appContext || {};
+  const { sessions, npcs, locations, selectedCampaignId, images } =
+    appContext || {};
 
   const fetcher = useFetcher();
 
@@ -149,6 +154,7 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
           parent_location:
             values.parent_location === -1 ? null : values.parent_location,
           Npcs: getSelectedNpcRelations(npcsRowSelection),
+          main_image: selectedImageId ?? null,
           // Allied_Players: getSelectedPlayerRelations(playersRowSelection),
           // Locations: getSelectedLocationRelations(locationRowSelection),
         }),
@@ -193,6 +199,8 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
   const locationNpcs = npcs?.filter((npc) =>
     location?.Npcs?.find((p) => p.Npc_id === npc.id)
   );
+
+  console.log('subLocations', location?.sub_locations);
 
   return (
     // navbar
@@ -321,15 +329,24 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
             </div>
             <div className="col-span-4 lg:col-span-4">
               <Card className="col-span-2 rounded-xl bg-muted/50 ">
-                <CardHeader
-                  className="rounded-t-xl bg-muted/50 h-[200px]"
-                  style={{
-                    backgroundImage: `url('${location?.main_image}')`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                  }}
-                ></CardHeader>
+                {!isEditing && (
+                  <CardHeader
+                    className="rounded-t-xl bg-muted/50 h-[300px]"
+                    style={{
+                      backgroundImage: `url('${location?.main_image}')`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                    }}
+                  ></CardHeader>
+                )}
+                {isEditing && (
+                  <ImageChooser
+                    images={images ?? []}
+                    selectedImageId={selectedImageId}
+                    setSelectedImageId={setSelectedImageId}
+                  />
+                )}
                 <CardContent className="pt-6">
                   {!isEditing && (
                     <>
@@ -345,7 +362,7 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
                           <AvatarList<TNpc>
                             title="NPCs"
                             data={locationNpcs}
-                            routePrefix="/player/"
+                            routePrefix="/npc/"
                           />
                         </div>
                         <div className="flex flex-col gap-2">
@@ -504,7 +521,7 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
                           npcs={npcsInCampaign}
                           rowSelection={npcsRowSelection}
                           setRowSelection={setNpcRowSelection}
-                          buttonLabel="Choose Allied Players"
+                          buttonLabel="Choose NPCs"
                         />
                       </div>
                     </>

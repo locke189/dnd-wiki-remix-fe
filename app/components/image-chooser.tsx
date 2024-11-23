@@ -132,11 +132,11 @@ export const ImageChooser: React.FC<TImageChooser> = ({
                     tabIndex={0}
                     onClick={() => {
                       setChooseImage(false);
-                      setSelectedImageId('0');
+                      setSelectedImageId('');
                     }}
                     onKeyDown={() => {
                       setChooseImage(false);
-                      setSelectedImageId('0');
+                      setSelectedImageId('');
                     }}
                   >
                     <CircleOff />

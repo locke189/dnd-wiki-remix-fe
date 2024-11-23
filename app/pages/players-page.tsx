@@ -56,6 +56,8 @@ import { Separator } from '~/components/ui/separator';
 import { useModelList } from '~/hooks/useModelList';
 import { AppContext } from '~/context/app.context';
 import { AvatarList } from '~/components/avatar-list';
+import { ImageChooser } from '~/components/image-chooser';
+import { set } from 'date-fns';
 
 type TPlayerPageProps = {
   player?: TPlayer;
@@ -68,9 +70,12 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
 }) => {
   const [submitted, setSubmitted] = React.useState(false);
   const [isEditing, setIsEditing] = React.useState(isNew);
+  const [selectedImageId, setSelectedImageId] = React.useState(
+    player?.main_image.split('/').pop() ?? ''
+  );
 
   const appContext = useContext(AppContext);
-  const { npcs, selectedCampaignId, sessions } = appContext || {};
+  const { npcs, selectedCampaignId, sessions, images } = appContext || {};
 
   const fetcher = useFetcher();
   const {
@@ -123,6 +128,7 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
         data: JSON.stringify({
           ...values,
           Allied_npcs: getSelectedNpcRelations(npcRowSelection),
+          main_image: selectedImageId ?? null,
         }),
       },
       {
@@ -308,15 +314,24 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
             </div>
             <div className="col-span-4 lg:col-span-4">
               <Card className="col-span-2 rounded-xl bg-muted/50 ">
-                <CardHeader
-                  className="rounded-t-xl bg-muted/50 h-[200px]"
-                  style={{
-                    backgroundImage: `url('${player?.main_image}')`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                  }}
-                ></CardHeader>
+                {!isEditing && (
+                  <CardHeader
+                    className="rounded-t-xl bg-muted/50 h-[300px]"
+                    style={{
+                      backgroundImage: `url('${player?.main_image}')`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                    }}
+                  ></CardHeader>
+                )}
+                {isEditing && (
+                  <ImageChooser
+                    images={images ?? []}
+                    selectedImageId={selectedImageId}
+                    setSelectedImageId={setSelectedImageId}
+                  />
+                )}
                 <CardContent className="pt-6">
                   {!isEditing && (
                     <>

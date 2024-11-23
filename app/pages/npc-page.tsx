@@ -58,6 +58,8 @@ import { AppContext } from '~/context/app.context';
 import { PlayersList } from '~/containers/players-list';
 import { TLocation, TLocationsRelationship } from '~/types/location';
 import { LocationsList } from '~/containers/locations-list';
+import { ImageChooser } from '~/components/image-chooser';
+import { set } from 'date-fns';
 
 type TNpcPageProps = {
   npc?: TNpc;
@@ -68,9 +70,13 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
   const [submitted, setSubmitted] = React.useState(false);
 
   const [isEditing, setIsEditing] = React.useState(isNew);
+  const [selectedImageId, setSelectedImageId] = React.useState(
+    npc?.main_image.split('/').pop() ?? ''
+  );
 
   const appContext = useContext(AppContext);
-  const { sessions, players, locations, selectedCampaignId } = appContext || {};
+  const { sessions, players, locations, selectedCampaignId, images } =
+    appContext || {};
 
   const fetcher = useFetcher();
   const {
@@ -134,6 +140,7 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
           ...values,
           Allied_Players: getSelectedPlayerRelations(playersRowSelection),
           Locations: getSelectedLocationRelations(locationRowSelection),
+          main_image: selectedImageId ?? null,
         }),
       },
       {
@@ -321,15 +328,24 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
             </div>
             <div className="col-span-4 lg:col-span-4">
               <Card className="col-span-2 rounded-xl bg-muted/50 ">
-                <CardHeader
-                  className="rounded-t-xl bg-muted/50 h-[200px]"
-                  style={{
-                    backgroundImage: `url('${npc?.main_image}')`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                  }}
-                ></CardHeader>
+                {!isEditing && (
+                  <CardHeader
+                    className="rounded-t-xl bg-muted/50 h-[300px]"
+                    style={{
+                      backgroundImage: `url('${npc?.main_image}')`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                    }}
+                  ></CardHeader>
+                )}
+                {isEditing && (
+                  <ImageChooser
+                    images={images ?? []}
+                    selectedImageId={selectedImageId}
+                    setSelectedImageId={setSelectedImageId}
+                  />
+                )}
                 <CardContent className="pt-6">
                   {!isEditing && (
                     <>
