@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getImageUrl(imageId: string) {
-  return `${process.env.DB_DOMAIN}:${process.env.DB_PORT}/assets/${imageId}`;
+  return `${process.env.ASSET_DOMAIN}:${process.env.ASSET_PORT}/assets/${imageId}`;
 }
 
 export const randomizeNPC = () => {

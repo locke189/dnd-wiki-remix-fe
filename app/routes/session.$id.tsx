@@ -5,9 +5,7 @@ import {
   type MetaFunction,
 } from '@remix-run/node';
 import { redirect, useLoaderData, useParams } from '@remix-run/react';
-import { Auth } from '~/lib/auth.server';
 import { readFiles, readItem, readItems, updateItem } from '@directus/sdk';
-import { commitSession } from '~/lib/sessions.server';
 
 import { SessionPage } from '~/pages/session-page';
 import { getImageUrl } from '~/lib/utils';
@@ -97,19 +95,17 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { client, isUserLoggedIn, getRequestHeaders, session } = await Auth(
-    request
-  );
+  const user = await authenticator.isAuthenticated(request, {
+    failureRedirect: '/login',
+  });
+
+  client.setToken(user?.token);
 
   const body = await request.formData();
   const { id } = params;
 
-  if (!isUserLoggedIn || client === null || !id) {
-    return redirect('/login', {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
+  if (!id) {
+    return redirect('/');
   }
 
   const data = JSON.parse(String(body.get('data')));
@@ -118,14 +114,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     updateItem('sessions', id, data as object)
   );
 
-  return json(
-    { data: gameSession },
-    {
-      headers: {
-        ...(await getRequestHeaders()),
-      },
-    }
-  );
+  return json({ data: gameSession });
 }
 
 export default function Index() {
