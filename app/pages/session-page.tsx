@@ -3,6 +3,7 @@ import { useFetcher } from '@remix-run/react';
 
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -174,28 +175,30 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <div className="flex flex-1 flex-col gap-4 p-4">
-            <div className="grid auto-rows-min gap-4 lg:grid-cols-3">
-              <Card className=" rounded-xl bg-muted/50 h-full">
-                <CardHeader>
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <EditableInput
-                            fieldName="Name"
-                            field={field}
-                            edit={isEditing}
-                            type="text"
-                          >
-                            <CardTitle>{field?.value}</CardTitle>
-                          </EditableInput>
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+          <Portal portalId={LAYOUT_PAGE_HEADER_PORTAL_ID}>
+            <header className="flex justify-between items-center w-full">
+              <div className="flex items-center gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem className="space-y-0 flex items-center">
+                      <FormControl>
+                        <EditableInput
+                          fieldName="Name"
+                          field={field}
+                          edit={isEditing}
+                          type="text"
+                          noLabel
+                          placeholder="Name..."
+                        >
+                          <h1 className="text-2xl font-bold">{field?.value}</h1>
+                        </EditableInput>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <p className="text-xl text-slate-500 align-middle">
                   <FormField
                     control={form.control}
                     name="date"
@@ -206,6 +209,7 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                           field={field}
                           edit={isEditing}
                           type="date"
+                          noLabel
                         >
                           <CardDescription>
                             {field.value
@@ -216,8 +220,185 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                       </FormItem>
                     )}
                   />
-                </CardHeader>
-                <CardDescription className="px-6 pb-6">
+                </p>
+              </div>
+              <div className="flex gap-3">
+                {!isNew && (
+                  <AlertDialog>
+                    <AlertDialogTrigger>
+                      <Button type="button" variant="destructive">
+                        <Trash />
+                        Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Are you absolutely sure?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently
+                          delete this session.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={() => onDelete()}
+                          >
+                            <Trash />
+                            Delete
+                          </Button>
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+                <Button
+                  onClick={() => {
+                    setIsEditing(!isEditing);
+                    isEditing && form.handleSubmit(onSubmit)();
+                  }}
+                  type="button"
+                >
+                  {isEditing ? (
+                    <>
+                      <Save /> Save
+                    </>
+                  ) : (
+                    <>
+                      <Pen /> Edit
+                    </>
+                  )}
+                </Button>
+              </div>
+            </header>
+          </Portal>
+
+          <div className="grid auto-rows-min gap-4 lg:grid-cols-12 grid-cols-8 mx-8 space-y-8">
+            <div className="col-span-8 lg:col-span-8 mt-8">
+              <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-8">
+                <FormField
+                  control={form.control}
+                  name="recap"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <EditableText
+                          fieldName="Recap"
+                          field={field}
+                          edit={isEditing}
+                          defaultOpen
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="master_start"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <EditableText
+                          fieldName="Strong Start"
+                          field={field}
+                          edit={isEditing}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="master_scenes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <EditableText
+                          fieldName="Possible Scenes"
+                          field={field}
+                          edit={isEditing}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="master_secrets"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <EditableText
+                          fieldName="Secrets"
+                          field={field}
+                          edit={isEditing}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+            <div className="col-span-4 lg:col-span-4">
+              <Card className="col-span-2 rounded-xl bg-muted/50 sticky">
+                <CardContent className="pt-6 flex flex-col gap-3 ">
+                  {isEditing ? (
+                    <>
+                      <PlayersList
+                        players={playersInCampaign}
+                        rowSelection={playerRowSelection}
+                        setRowSelection={setPlayerRowSelection}
+                        buttonLabel="Add Player"
+                      />
+                      <NpcList
+                        npcs={npcsInCampaign}
+                        rowSelection={npcRowSelection}
+                        setRowSelection={setNpcRowSelection}
+                        buttonLabel="Add NPC"
+                      />
+                      <LocationsList
+                        locations={locationsInCampaign}
+                        rowSelection={locationRowSelection}
+                        setRowSelection={setLocationRowSelection}
+                        buttonLabel="Add Location"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <AvatarList<TPlayer>
+                        data={playersInSession}
+                        routePrefix="/player/"
+                        title="Players"
+                      />
+                      <AvatarList<TNpc>
+                        data={npcsInSession}
+                        routePrefix="/npc/"
+                        title="Npcs"
+                      />
+                      <AvatarList<TLocation>
+                        data={locationsInSession}
+                        routePrefix="/location/"
+                        title="Locations"
+                      />
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* <div className="flex flex-1 flex-col gap-4 p-4">
+            <div className="grid auto-rows-min gap-4 lg:grid-cols-3">
+              <Card className=" rounded-xl bg-muted/50 h-full">
+                <CardDescription className="px-6 pb-6 py-6">
                   {isEditing ? (
                     <PlayersList
                       players={playersInCampaign}
@@ -337,62 +518,7 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                 )}
               />
             </div>
-          </div>
-          <Portal portalId={LAYOUT_PAGE_HEADER_PORTAL_ID}>
-            <div className="flex gap-3">
-              {!isNew && (
-                <AlertDialog>
-                  <AlertDialogTrigger>
-                    <Button type="button" variant="destructive">
-                      <Trash />
-                      Delete
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Are you absolutely sure?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete this session.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction asChild>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          onClick={() => onDelete()}
-                        >
-                          <Trash />
-                          Delete
-                        </Button>
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-              <Button
-                onClick={() => {
-                  setIsEditing(!isEditing);
-                  isEditing && form.handleSubmit(onSubmit)();
-                }}
-                type="button"
-              >
-                {isEditing ? (
-                  <>
-                    <Save /> Save
-                  </>
-                ) : (
-                  <>
-                    <Pen /> Edit
-                  </>
-                )}
-              </Button>
-            </div>
-          </Portal>
+          </div> */}
         </form>
       </Form>
     </>
