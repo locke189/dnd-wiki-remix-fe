@@ -5,13 +5,13 @@ import {
   type MetaFunction,
 } from '@remix-run/node';
 import { redirect, useLoaderData } from '@remix-run/react';
-import { Auth } from '~/lib/auth.server';
 import { readItem, updateItem } from '@directus/sdk';
-import { commitSession } from '~/lib/sessions.server';
 
 import { NpcPage } from '~/pages/npc-page';
 import { TNpc } from '~/types/npc';
 import { getImageUrl } from '~/lib/utils';
+import { authenticator } from '~/lib/authentication.server';
+import { client } from '~/lib/directus.server';
 
 export const meta: MetaFunction = () => {
   return [
@@ -21,19 +21,17 @@ export const meta: MetaFunction = () => {
 };
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { client, isUserLoggedIn, getRequestHeaders, session } = await Auth(
-    request
-  );
+  const user = await authenticator.isAuthenticated(request, {
+    failureRedirect: '/login',
+  });
+
+  client.setToken(user?.token);
 
   const body = await request.formData();
   const { id } = params;
 
-  if (!isUserLoggedIn || client === null || !id) {
-    return redirect('/login', {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
+  if (!id) {
+    return redirect('/login');
   }
 
   const data = JSON.parse(String(body.get('data')));
@@ -42,29 +40,20 @@ export async function action({ request, params }: ActionFunctionArgs) {
     updateItem('Npc', id, data as object)
   );
 
-  return json(
-    { data: gameSession },
-    {
-      headers: {
-        ...(await getRequestHeaders()),
-      },
-    }
-  );
+  return json({ data: gameSession });
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { client, isUserLoggedIn, getRequestHeaders, session } = await Auth(
-    request
-  );
+  const user = await authenticator.isAuthenticated(request, {
+    failureRedirect: '/login',
+  });
+
+  client.setToken(user?.token);
 
   const { id } = params;
 
-  if (!isUserLoggedIn || client === null || !id) {
-    return redirect('/login', {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
+  if (!id) {
+    return redirect('/');
   }
 
   const npc = await client.request(
@@ -79,17 +68,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     })
   );
 
-  return json(
-    {
-      isUserLoggedIn: true,
-      npc: { ...npc, main_image: getImageUrl(npc.main_image) },
-    },
-    {
-      headers: {
-        ...(await getRequestHeaders()),
-      },
-    }
-  );
+  return json({
+    isUserLoggedIn: true,
+    npc: { ...npc, main_image: getImageUrl(npc.main_image) },
+  });
 }
 
 export default function Index() {

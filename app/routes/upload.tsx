@@ -2,29 +2,22 @@ import { uploadFiles } from '@directus/sdk';
 import {
   ActionFunctionArgs,
   json,
-  redirect,
   unstable_composeUploadHandlers,
   unstable_createFileUploadHandler,
   unstable_createMemoryUploadHandler,
   unstable_parseMultipartFormData,
 } from '@remix-run/node';
-import { Auth } from '~/lib/auth.server';
-import { commitSession } from '~/lib/sessions.server';
+import { authenticator } from '~/lib/authentication.server';
+import { client } from '~/lib/directus.server';
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { client, isUserLoggedIn, getRequestHeaders, session } = await Auth(
-    request
-  );
+  const user = await authenticator.isAuthenticated(request, {
+    failureRedirect: '/login',
+  });
+
+  client.setToken(user?.token);
 
   console.log('Uploading Image');
-
-  if (!isUserLoggedIn || client === null) {
-    return redirect('/login', {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
-  }
 
   const uploadHandler = unstable_composeUploadHandlers(
     unstable_createFileUploadHandler({
@@ -42,12 +35,5 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const image = await client.request(uploadFiles(formData));
 
-  return json(
-    { image },
-    {
-      headers: {
-        ...(await getRequestHeaders()),
-      },
-    }
-  );
+  return json({ image });
 }

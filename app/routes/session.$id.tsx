@@ -13,10 +13,11 @@ import { SessionPage } from '~/pages/session-page';
 import { getImageUrl } from '~/lib/utils';
 import { TSession } from '~/types/session';
 import { TPlayer } from '~/types/player';
-import { TNpc } from '~/types/npc';
 import { TLocation } from '~/types/location';
 import { TImage } from '~/types/images';
 import { TCampaign } from '~/types/campaigns';
+import { authenticator } from '~/lib/authentication.server';
+import { client } from '~/lib/directus.server';
 
 export const meta: MetaFunction = () => {
   return [
@@ -26,18 +27,16 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { client, isUserLoggedIn, getRequestHeaders, session } = await Auth(
-    request
-  );
+  const user = await authenticator.isAuthenticated(request, {
+    failureRedirect: '/login',
+  });
+
+  client.setToken(user?.token);
 
   const { id } = params;
 
-  if (!isUserLoggedIn || client === null || !id) {
-    return redirect('/login', {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
+  if (!id) {
+    return redirect('/');
   }
 
   const gameSession = await client.request(
@@ -77,31 +76,24 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     })
   );
 
-  return json(
-    {
-      isUserLoggedIn: true,
-      gameSession,
-      players: players.map((player) => ({
-        ...player,
-        main_image: getImageUrl(player.main_image),
-      })),
+  return json({
+    isUserLoggedIn: true,
+    gameSession,
+    players: players.map((player) => ({
+      ...player,
+      main_image: getImageUrl(player.main_image),
+    })),
 
-      locations: locations.map((location) => ({
-        ...location,
-        main_image: getImageUrl(location.main_image),
-      })),
-      images: images.map((image) => ({
-        ...image,
-        src: getImageUrl(image.id),
-      })),
-      campaigns,
-    },
-    {
-      headers: {
-        ...(await getRequestHeaders()),
-      },
-    }
-  );
+    locations: locations.map((location) => ({
+      ...location,
+      main_image: getImageUrl(location.main_image),
+    })),
+    images: images.map((image) => ({
+      ...image,
+      src: getImageUrl(image.id),
+    })),
+    campaigns,
+  });
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {

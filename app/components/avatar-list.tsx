@@ -16,7 +16,6 @@ export const AvatarList = <
   routePrefix,
   title,
 }: TAvatarListProps<T>) => {
-  console.log('avatarList', data);
   return (
     <div className="flex flex-col gap-2">
       <h2 className="text-lg font-bold">{title}</h2>

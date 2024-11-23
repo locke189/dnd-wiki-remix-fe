@@ -10,7 +10,6 @@ import {
 import type { LinksFunction, LoaderFunctionArgs } from '@remix-run/node';
 
 import './tailwind.css';
-import { Auth } from './lib/auth.server';
 import { readFiles, readItems, readMe } from '@directus/sdk';
 import { NavBar } from './containers/navbar';
 import SidebarLayout from './containers/sidabarLayout';
@@ -22,6 +21,8 @@ import { TPlayer } from './types/player';
 import { TLocation } from './types/location';
 import { TImage } from './types/images';
 import { TSession } from './types/session';
+import { authenticator } from './lib/authentication.server';
+import { client } from './lib/directus.server';
 
 export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -37,19 +38,27 @@ export const links: LinksFunction = () => [
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { client, isUserLoggedIn, getRequestHeaders, refreshClientToken } =
-    await Auth(request);
+  // const { client, isUserLoggedIn, getRequestHeaders, refreshClientToken } =
+  //   await Auth(request);
 
-  if (!isUserLoggedIn || client === null) {
-    return json(
-      { isUserLoggedIn: false },
-      {
-        headers: {
-          ...(await getRequestHeaders()),
-        },
-      }
-    );
+  // if (!isUserLoggedIn || client === null) {
+  //   return json(
+  //     { isUserLoggedIn: false },
+  //     {
+  //       headers: {
+  //         ...(await getRequestHeaders()),
+  //       },
+  //     }
+  //   );
+  // }
+
+  const userData = await authenticator.isAuthenticated(request);
+
+  if (!userData) {
+    return json({ isUserLoggedIn: false });
   }
+
+  client.setToken(userData.token);
 
   const user = await client.request(
     readMe({
@@ -107,35 +116,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })
   );
 
-  return json(
-    {
-      isUserLoggedIn: true,
-      user,
-      sessions,
-      campaigns,
-      players: players.map((player) => ({
-        ...player,
-        main_image: getImageUrl(player.main_image),
-      })),
-      npcs: npcs.map((npc) => ({
-        ...npc,
-        main_image: getImageUrl(npc.main_image),
-      })),
-      locations: locations.map((location) => ({
-        ...location,
-        main_image: getImageUrl(location.main_image),
-      })),
-      images: images.map((image) => ({
-        ...image,
-        src: getImageUrl(image.id),
-      })),
-    },
-    {
-      headers: {
-        ...(await getRequestHeaders()),
-      },
-    }
-  );
+  return json({
+    isUserLoggedIn: true,
+    user,
+    sessions,
+    campaigns,
+    players: players.map((player) => ({
+      ...player,
+      main_image: getImageUrl(player.main_image),
+    })),
+    npcs: npcs.map((npc) => ({
+      ...npc,
+      main_image: getImageUrl(npc.main_image),
+    })),
+    locations: locations.map((location) => ({
+      ...location,
+      main_image: getImageUrl(location.main_image),
+    })),
+    images: images.map((image) => ({
+      ...image,
+      src: getImageUrl(image.id),
+    })),
+  });
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {

@@ -1,22 +1,17 @@
 import {
+  ActionFunctionArgs,
   json,
   type LoaderFunctionArgs,
   type MetaFunction,
 } from '@remix-run/node';
 import { redirect, useLoaderData } from '@remix-run/react';
-import { Auth } from '~/lib/auth.server';
 import { readItem, updateItem } from '@directus/sdk';
-import { commitSession } from '~/lib/sessions.server';
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '~/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
+
 import { getImageUrl } from '~/lib/utils';
 import { TLocation } from '~/types/location';
 import { LocationPage } from '~/pages/location-page';
+import { authenticator } from '~/lib/authentication.server';
+import { client } from '~/lib/directus.server';
 
 export const meta: MetaFunction = () => {
   return [
@@ -26,19 +21,17 @@ export const meta: MetaFunction = () => {
 };
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { client, isUserLoggedIn, getRequestHeaders, session } = await Auth(
-    request
-  );
+  const user = await authenticator.isAuthenticated(request, {
+    failureRedirect: '/login',
+  });
+
+  client.setToken(user?.token);
 
   const body = await request.formData();
   const { id } = params;
 
-  if (!isUserLoggedIn || client === null || !id) {
-    return redirect('/login', {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
+  if (!id) {
+    return redirect('/login');
   }
 
   const data = JSON.parse(String(body.get('data')));
@@ -47,29 +40,19 @@ export async function action({ request, params }: ActionFunctionArgs) {
     updateItem('Locations', id, data as object)
   );
 
-  return json(
-    { data: gameSession },
-    {
-      headers: {
-        ...(await getRequestHeaders()),
-      },
-    }
-  );
+  return json({ data: gameSession });
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { client, isUserLoggedIn, getRequestHeaders, session } = await Auth(
-    request
-  );
+  const user = await authenticator.isAuthenticated(request, {
+    failureRedirect: '/login',
+  });
+
+  client.setToken(user?.token);
 
   const { id } = params;
-
-  if (!isUserLoggedIn || client === null || !id) {
-    return redirect('/login', {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
+  if (!id) {
+    return redirect('/');
   }
 
   const location = await client.request(
@@ -86,24 +69,17 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     })
   );
 
-  return json(
-    {
-      isUserLoggedIn: true,
-      location: {
-        ...location,
-        main_image: getImageUrl(location.main_image),
-        sub_locations: location.sub_locations.map((l: TLocation) => ({
-          ...l,
-          main_image: getImageUrl(l.main_image),
-        })),
-      },
+  return json({
+    isUserLoggedIn: true,
+    location: {
+      ...location,
+      main_image: getImageUrl(location.main_image),
+      sub_locations: location.sub_locations.map((l: TLocation) => ({
+        ...l,
+        main_image: getImageUrl(l.main_image),
+      })),
     },
-    {
-      headers: {
-        ...(await getRequestHeaders()),
-      },
-    }
-  );
+  });
 }
 
 export default function Index() {

@@ -1,8 +1,8 @@
 import { ActionFunctionArgs, type MetaFunction } from '@remix-run/node';
 import { redirect } from '@remix-run/react';
-import { Auth } from '~/lib/auth.server';
 import { deleteItem } from '@directus/sdk';
-import { commitSession } from '~/lib/sessions.server';
+import { authenticator } from '~/lib/authentication.server';
+import { client } from '~/lib/directus.server';
 
 export const meta: MetaFunction = () => {
   return [
@@ -12,16 +12,16 @@ export const meta: MetaFunction = () => {
 };
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { client, isUserLoggedIn, session } = await Auth(request);
+  const user = await authenticator.isAuthenticated(request, {
+    failureRedirect: '/login',
+  });
+
+  client.setToken(user?.token);
 
   const { id } = params;
 
-  if (!isUserLoggedIn || client === null || !id) {
-    return redirect('/login', {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
+  if (!id) {
+    return redirect('/');
   }
 
   await client.request(deleteItem('sessions', id));

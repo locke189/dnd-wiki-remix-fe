@@ -4,15 +4,15 @@ import {
   type MetaFunction,
 } from '@remix-run/node';
 import { redirect, useLoaderData } from '@remix-run/react';
-import { Auth } from '~/lib/auth.server';
 import { readItem } from '@directus/sdk';
-import { commitSession } from '~/lib/sessions.server';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '~/components/ui/accordion';
+import { client } from '~/lib/directus.server';
+import { authenticator } from '~/lib/authentication.server';
 
 export const meta: MetaFunction = () => {
   return [
@@ -22,18 +22,15 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { client, isUserLoggedIn, getRequestHeaders, session } = await Auth(
-    request
-  );
+  const user = await authenticator.isAuthenticated(request, {
+    failureRedirect: '/login',
+  });
+
+  client.setToken(user?.token);
 
   const { id } = params;
-
-  if (!isUserLoggedIn || client === null || !id) {
-    return redirect('/login', {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
+  if (!id) {
+    return redirect('/');
   }
 
   const campaign = await client.request(
@@ -49,14 +46,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       : '',
   };
 
-  return json(
-    { isUserLoggedIn: true, campaign: campaignWithImages },
-    {
-      headers: {
-        ...(await getRequestHeaders()),
-      },
-    }
-  );
+  return json({ isUserLoggedIn: true, campaign: campaignWithImages });
 }
 
 export default function Index() {

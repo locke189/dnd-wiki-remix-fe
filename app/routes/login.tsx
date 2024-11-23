@@ -14,10 +14,10 @@ import {
 } from '../components/ui/form';
 import { Input } from '../components/ui/input';
 import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
-import { json, redirect, useFetcher, useLoaderData } from '@remix-run/react';
-import { Auth } from '~/lib/auth.server';
+import { useFetcher, useLoaderData } from '@remix-run/react';
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { authenticator } from '~/lib/authentication.server';
 
 const formSchema = z.object({
   email: z.string().email().min(2).max(50),
@@ -25,29 +25,19 @@ const formSchema = z.object({
 });
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { isUserLoggedIn, getRequestHeaders, session } = await Auth(request);
-
-  if (isUserLoggedIn) {
-    // Redirect to the home page if they are already signed in.
-    return redirect('/');
-  }
-
-  const error = session.get('error');
-  session.unset('error');
-
-  return json(
-    { error },
-    {
-      headers: {
-        ...(await getRequestHeaders()),
-      },
-    }
-  );
+  return await authenticator.isAuthenticated(request, {
+    successRedirect: '/',
+  });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { login } = await Auth(request);
-  return await login();
+  // const { login } = await Auth(request);
+  // return await login();
+
+  return await authenticator.authenticate('user-pass', request, {
+    successRedirect: '/',
+    failureRedirect: '/login',
+  });
 }
 
 export default function Index() {
@@ -79,7 +69,7 @@ export default function Index() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="my-8 space-y-4">
-          {data.error && (
+          {data?.error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Error</AlertTitle>

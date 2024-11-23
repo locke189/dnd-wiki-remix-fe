@@ -18,4 +18,14 @@ interface AppContextProps {
   images: TImage[];
 }
 
-export const AppContext = createContext<AppContextProps | undefined>(undefined);
+export const AppContext = createContext<AppContextProps>({
+  // Provide default values for your context properties here
+  selectedCampaignId: 0,
+  setSelectedCampaignId: () => {},
+  npcs: [],
+  sessions: [],
+  players: [],
+  campaigns: [],
+  locations: [],
+  images: [],
+});

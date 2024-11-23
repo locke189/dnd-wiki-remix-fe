@@ -3,13 +3,12 @@ import {
   type LoaderFunctionArgs,
   type MetaFunction,
 } from '@remix-run/node';
-import { Link, redirect, useLoaderData } from '@remix-run/react';
-import { Auth } from '~/lib/auth.server';
-import { createItem, readItems } from '@directus/sdk';
-import { commitSession } from '~/lib/sessions.server';
+import { useLoaderData } from '@remix-run/react';
+import { readItems } from '@directus/sdk';
 import { ImageList } from '~/components/image-list';
 import { TPlayer } from '~/types/player';
-import { allItems } from '~/models/all-items';
+import { authenticator } from '~/lib/authentication.server';
+import { client } from '~/lib/directus.server';
 
 export const meta: MetaFunction = () => {
   return [
@@ -19,28 +18,17 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { client, isUserLoggedIn, getRequestHeaders, session } = await Auth(
-    request
-  );
+  const user = await authenticator.isAuthenticated(request, {
+    failureRedirect: '/login',
+  });
 
-  if (!isUserLoggedIn || client === null) {
-    return redirect('/login', {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
-  }
+  client.setToken(user?.token);
 
   const players = await client.request(
     readItems('Player', {
       fields: ['*'],
     })
   );
-
-  // allItems.forEach(async (item) => {
-  //   console.log('item', item);
-  //   await client.request(createItem('Items', item as object));
-  // });
 
   const playersWithImages = players.map((player) => {
     return {
@@ -49,14 +37,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     };
   });
 
-  return json(
-    { isUserLoggedIn: true, players: playersWithImages },
-    {
-      headers: {
-        ...(await getRequestHeaders()),
-      },
-    }
-  );
+  return json({ isUserLoggedIn: true, players: playersWithImages });
 }
 
 export default function Index() {

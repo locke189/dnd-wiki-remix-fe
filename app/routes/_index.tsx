@@ -4,8 +4,8 @@ import {
   type MetaFunction,
 } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
-import { Auth } from '~/lib/auth.server';
-import { readMe } from '@directus/sdk';
+
+import { authenticator } from '~/lib/authentication.server';
 
 export const meta: MetaFunction = () => {
   return [
@@ -15,26 +15,12 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { client, isUserLoggedIn, getRequestHeaders } = await Auth(request);
+  const userData = await authenticator.isAuthenticated(request);
 
-  if (!isUserLoggedIn || client === null) {
+  if (!userData) {
     return json({ isUserLoggedIn: false });
   }
-
-  const user = await client.request(
-    readMe({
-      fields: ['*'],
-    })
-  );
-
-  return json(
-    { isUserLoggedIn: true },
-    {
-      headers: {
-        ...(await getRequestHeaders()),
-      },
-    }
-  );
+  return json({ isUserLoggedIn: true });
 }
 
 export default function Index() {
