@@ -23,6 +23,7 @@ import { TImage } from './types/images';
 import { TSession } from './types/session';
 import { authenticator } from './lib/authentication.server';
 import { client } from './lib/directus.server';
+import { TBastion } from './types/bastion';
 
 export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -68,23 +69,43 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const players = await client.request(
     readItems('Player', {
-      fields: ['name', 'id', 'campaigns.campaigns_id', 'main_image'],
+      fields: [
+        'name',
+        'id',
+        'status',
+        'campaigns.campaigns_id',
+        'main_image',
+        'class',
+        'race',
+        'url',
+      ],
     })
   );
 
   const sessions = await client.request(
-    readItems('sessions', { fields: ['id', 'name', 'date', 'campaign'] })
+    readItems('sessions', {
+      fields: ['id', 'name', 'date', 'campaign', 'status'],
+    })
   );
 
   const npcs = await client.request(
     readItems('Npc', {
-      fields: ['name', 'id', 'class', 'main_image', 'campaigns.campaigns_id'],
+      fields: [
+        'name',
+        'id',
+        'status',
+        'class',
+        'main_image',
+        'campaigns.campaigns_id',
+        'description',
+      ],
     })
   );
 
   const locations = await client.request(
     readItems('Locations', {
       fields: [
+        'status',
         'name',
         'id',
         'parent_location',
@@ -93,13 +114,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
         'type',
         'sessions.sessions_id',
         'main_image',
+        'description',
       ],
     })
   );
 
   const campaigns = await client.request(
     readItems('campaigns', {
-      fields: ['name', 'id'],
+      fields: ['name', 'id', 'status'],
     })
   );
 
@@ -113,6 +135,42 @@ export async function loader({ request }: LoaderFunctionArgs) {
         },
       },
       limit: -1,
+    })
+  );
+
+  const items = await client.request(
+    readItems('Items', {
+      fields: [
+        'id',
+        'name',
+        'description',
+        'status',
+        'main_image',
+        'rarity',
+        'type',
+        'price',
+        'is_service',
+      ],
+    })
+  );
+
+  const bastions = await client.request(
+    readItems('bastion', {
+      fields: [
+        'id',
+        'name',
+        'status',
+        'campaigns.campaigns_id',
+        'Rooms',
+        'player.*',
+        'main_image',
+      ],
+    })
+  );
+
+  const parties = await client.request(
+    readItems('Parties', {
+      fields: ['id', 'name', 'status', 'campaigns.campaigns_id', 'main_image'],
     })
   );
 
@@ -137,6 +195,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
       ...image,
       src: getImageUrl(image.id),
     })),
+    items: items.map((item) => ({
+      ...item,
+      main_image: getImageUrl(item.main_image),
+    })),
+    parties: parties.map((party) => ({
+      ...party,
+      main_image: getImageUrl(party.main_image),
+    })),
+    bastions: bastions.map((bastion) => ({
+      ...bastion,
+      main_image: getImageUrl(bastion.main_image),
+    })),
   });
 }
 
@@ -148,6 +218,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     locations: TLocation[];
     images: TImage[];
     sessions: TSession[];
+    bastions: TBastion[];
   } | null>();
   const [selectedCampaignId, setSelectedCampaignId] = useState<number>(2);
 
@@ -171,6 +242,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             images: data?.images ?? [],
             campaigns: [],
             sessions: data?.sessions ?? [],
+            bastions: data?.bastions ?? [],
           }}
         >
           {!data?.isUserLoggedIn ? (

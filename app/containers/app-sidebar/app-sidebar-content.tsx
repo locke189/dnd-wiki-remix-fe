@@ -1,5 +1,14 @@
 import { Link, useLoaderData } from '@remix-run/react';
-import { Bot, ChevronDown, Gamepad2, Map, Plus, User2 } from 'lucide-react';
+import {
+  Bot,
+  ChevronDown,
+  DraftingCompass,
+  Gamepad2,
+  Map,
+  Plus,
+  ShoppingBasket,
+  User2,
+} from 'lucide-react';
 import { ReactNode, useContext } from 'react';
 import {
   Collapsible,
@@ -235,6 +244,41 @@ export const AppSidebarContent: React.FC = () => {
                 </CollapsibleContent>
               </SidebarMenuItem>
             </Collapsible>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+      <SidebarGroup>
+        <SidebarGroupLabel>DM Tools</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem className="pr-0 mr-0">
+              <Link to={`/session-manager/`}>
+                <SidebarMenuButton asChild>
+                  <div>
+                    <DraftingCompass />
+                    <span>Session Manager</span>
+                  </div>
+                </SidebarMenuButton>
+              </Link>
+
+              {/* <SidebarMenuAction>
+                  <ChevronDown /> <span className="sr-only">New </span>
+                </SidebarMenuAction> */}
+            </SidebarMenuItem>
+            <SidebarMenuItem className="pr-0 mr-0">
+              <Link to={`/items/`}>
+                <SidebarMenuButton asChild>
+                  <div>
+                    <ShoppingBasket />
+                    <span>Item Browser</span>
+                  </div>
+                </SidebarMenuButton>
+              </Link>
+
+              {/* <SidebarMenuAction>
+                  <ChevronDown /> <span className="sr-only">New </span>
+                </SidebarMenuAction> */}
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>

@@ -41,11 +41,10 @@ import { useModelList } from '~/hooks/useModelList';
 import { AppContext } from '~/context/app.context';
 import { LocationsList } from '~/containers/locations-list';
 import { PlayersList } from '~/containers/players-list';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 
 type TSessionPageProps = {
   gameSession?: TSession;
-  players?: TPlayer[];
-  locations?: TLocation[];
   isNew?: boolean;
 };
 
@@ -106,6 +105,7 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
     master_start: z.string().optional(),
     master_scenes: z.string().optional(),
     master_secrets: z.string().optional(),
+    master_notes: z.string().optional(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -120,6 +120,7 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
       master_start: gameSession?.master_start ?? '',
       master_scenes: gameSession?.master_scenes ?? '',
       master_secrets: gameSession?.master_secrets ?? '',
+      master_notes: gameSession?.master_notes ?? '',
     },
   });
 
@@ -281,24 +282,109 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
           <div className="grid auto-rows-min gap-4 lg:grid-cols-12 grid-cols-8 mx-8 space-y-8">
             <div className="col-span-8 lg:col-span-8 mt-8">
               <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-8">
-                <FormField
-                  control={form.control}
-                  name="recap"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <EditableText
-                          fieldName="Recap"
-                          field={field}
-                          edit={isEditing}
-                          defaultOpen
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                <Tabs defaultValue="recap" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="master_notes">Notes</TabsTrigger>
+                    <TabsTrigger value="recap">Recap</TabsTrigger>
+                    <TabsTrigger value="master_start">Strong Start</TabsTrigger>
+                    <TabsTrigger value="master_scenes">
+                      Possible Scenes
+                    </TabsTrigger>
+                    <TabsTrigger value="master_secrets">Secrets</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="master_notes">
+                    <FormField
+                      control={form.control}
+                      name="master_notes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <EditableText
+                              fieldName="Notes"
+                              field={field}
+                              edit={isEditing}
+                              defaultOpen
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+                  <TabsContent value="recap">
+                    <FormField
+                      control={form.control}
+                      name="recap"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <EditableText
+                              fieldName="Recap"
+                              field={field}
+                              edit={isEditing}
+                              defaultOpen
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+                  <TabsContent value="master_start">
+                    <FormField
+                      control={form.control}
+                      name="master_start"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <EditableText
+                              fieldName="Strong Start"
+                              field={field}
+                              edit={isEditing}
+                              defaultOpen
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+                  <TabsContent value="master_scenes">
+                    <FormField
+                      control={form.control}
+                      name="master_scenes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <EditableText
+                              fieldName="Possible Scenes"
+                              field={field}
+                              edit={isEditing}
+                              defaultOpen
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+                  <TabsContent value="master_secrets">
+                    <FormField
+                      control={form.control}
+                      name="master_secrets"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <EditableText
+                              fieldName="Secrets"
+                              field={field}
+                              edit={isEditing}
+                              defaultOpen
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+                </Tabs>
 
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="master_start"
                   render={({ field }) => (
@@ -344,7 +430,7 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                       </FormControl>
                     </FormItem>
                   )}
-                />
+                /> */}
               </div>
             </div>
             <div className="col-span-4 lg:col-span-4">

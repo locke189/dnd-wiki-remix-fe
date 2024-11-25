@@ -1,3 +1,4 @@
+import { TBastion } from './bastion';
 import { TNpcRelationship } from './npc';
 import { TSessionRelationship } from './session';
 
@@ -24,6 +25,7 @@ export type TPlayer = {
   age: string;
   Allied_npcs: TNpcRelationship[];
   sessions: TSessionRelationship[];
+  bastions: TBastion[];
 };
 
 export type TPlayerRelationship = {

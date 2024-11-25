@@ -37,7 +37,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   const player = await client.request(
     readItem('Player', id, {
-      fields: ['*', 'campaigns.*', 'Allied_npcs.*', 'sessions.*'],
+      fields: ['*', 'campaigns.*', 'Allied_npcs.*', 'sessions.*', 'bastions.*'],
     })
   );
 
@@ -47,7 +47,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   return json({
     isUserLoggedIn: true,
-    player: { ...player, main_image: getImageUrl(player.main_image) },
+    player: {
+      ...player,
+      main_image: getImageUrl(player.main_image),
+      bastions: player.bastions.map((b) => ({
+        ...b,
+        main_image: getImageUrl(b.main_image),
+      })),
+    },
     sessions,
   });
 }

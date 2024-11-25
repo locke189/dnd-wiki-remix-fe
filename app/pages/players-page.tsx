@@ -58,6 +58,7 @@ import { AppContext } from '~/context/app.context';
 import { AvatarList } from '~/components/avatar-list';
 import { ImageChooser } from '~/components/image-chooser';
 import { set } from 'date-fns';
+import { TBastion } from '~/types/bastion';
 
 type TPlayerPageProps = {
   player?: TPlayer;
@@ -75,7 +76,8 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
   );
 
   const appContext = useContext(AppContext);
-  const { npcs, selectedCampaignId, sessions, images } = appContext || {};
+  const { npcs, selectedCampaignId, sessions, images, bastions } =
+    appContext || {};
 
   const fetcher = useFetcher();
   const {
@@ -87,6 +89,18 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
     relations: player?.Allied_npcs || [],
     relationsKey: 'Npc_id',
     data: npcs || [],
+    selectedCampaignId: selectedCampaignId ?? 0,
+  });
+
+  const {
+    rowSelection: bastionRowSelection,
+    getSelectedRelations: getSelectedBastionRelations,
+    setRowSelection: setBastionRowSelection,
+    dataInCampaign: bastionsInCampaign,
+  } = useModelList<TBastionRelationship, TBastion>({
+    relations: player?.bastions || [],
+    relationsKey: 'bastion_id',
+    data: bastions || [],
     selectedCampaignId: selectedCampaignId ?? 0,
   });
 
@@ -355,6 +369,13 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
                             title="Allied NPCs"
                             data={playerNpcs}
                             routePrefix="/npc/"
+                          />
+                        </div>
+                        <div>
+                          <AvatarList<TBastion>
+                            title="Bastions"
+                            data={player?.bastions ?? []}
+                            routePrefix="/bastion/"
                           />
                         </div>
                         <div className="flex flex-col gap-2">

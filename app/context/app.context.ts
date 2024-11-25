@@ -1,4 +1,5 @@
 import { createContext } from 'react';
+import { TBastion } from '~/types/bastion';
 import { TCampaign } from '~/types/campaigns';
 import { TImage } from '~/types/images';
 import { TLocation } from '~/types/location';
@@ -16,6 +17,7 @@ interface AppContextProps {
   campaigns: TCampaign[];
   locations: TLocation[];
   images: TImage[];
+  bastions: TBastion[];
 }
 
 export const AppContext = createContext<AppContextProps>({
@@ -28,4 +30,5 @@ export const AppContext = createContext<AppContextProps>({
   campaigns: [],
   locations: [],
   images: [],
+  bastions: [],
 });

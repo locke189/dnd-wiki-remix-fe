@@ -10,6 +10,7 @@ export type TSession = {
   master_start?: string;
   master_scenes?: string;
   master_secrets?: string;
+  master_notes?: string;
   campaign: number;
   players: TPlayerRelationship[];
   Npcs: TNpcRelationship[];

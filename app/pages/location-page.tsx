@@ -4,7 +4,7 @@ import { Link, useFetcher } from '@remix-run/react';
 import { Card, CardContent, CardHeader } from '~/components/ui/card';
 import { EditableText } from '~/components/editable-text';
 import { Button } from '~/components/ui/button';
-import { useForm } from 'react-hook-form';
+import { get, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -55,7 +55,7 @@ import {
   PopoverTrigger,
 } from '~/components/ui/popover';
 import { cn } from '~/lib/utils';
-import { getLocationOptions } from '~/lib/locations';
+import { getLocationOptions, getLocationTypeData } from '~/lib/locations';
 import {
   Command,
   CommandEmpty,
@@ -230,9 +230,10 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
                     </FormItem>
                   )}
                 />
-                {!isEditing && (
-                  <p className="text-xl text-slate-500 align-middle">
-                    {`${location?.type}`}
+                {!isEditing && location?.type && (
+                  <p className="text-xl text-slate-500 align-middle flex items-center gap-2">
+                    {getLocationTypeData(location?.type).icon}
+                    {`${getLocationTypeData(location?.type).name}`}
                   </p>
                 )}
               </div>
