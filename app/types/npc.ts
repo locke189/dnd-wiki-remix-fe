@@ -1,4 +1,5 @@
 import { TLocationsRelationship } from './location';
+import { TPartyRelationship } from './party';
 import { TPlayerRelationship } from './player';
 import { TSessionRelationship } from './session';
 
@@ -21,6 +22,7 @@ export type TNpc = {
     campaigns_id: number;
   }[];
   sessions: TSessionRelationship[];
+  Parties: TPartyRelationship[];
 };
 
 export type TNpcRelationship = {

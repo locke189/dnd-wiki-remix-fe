@@ -1,4 +1,5 @@
 import { TNpcRelationship } from './npc';
+import { TPartyRelationship } from './party';
 import { TSessionRelationship } from './session';
 
 export type TLocationType =
@@ -46,7 +47,7 @@ export type TLocation = {
   Npcs: TNpcRelationship[];
   sessions: TSessionRelationship[];
   sub_locations: TLocation[];
-  Parties: { Parties_id: number }[];
+  Parties: TPartyRelationship[];
   items: { Items_id: number }[];
 };
 

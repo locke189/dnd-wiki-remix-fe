@@ -64,6 +64,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         'Allied_Players.*',
         'sessions.*',
         'Locations.*',
+        'Parties.*',
       ],
     })
   );

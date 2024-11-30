@@ -24,6 +24,7 @@ import { TSession } from './types/session';
 import { authenticator } from './lib/authentication.server';
 import { client } from './lib/directus.server';
 import { TBastion } from './types/bastion';
+import { TParty } from './types/party';
 
 export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -170,7 +171,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const parties = await client.request(
     readItems('Parties', {
-      fields: ['id', 'name', 'status', 'campaigns.campaigns_id', 'main_image'],
+      fields: [
+        'id',
+        'name',
+        'status',
+        'campaigns.campaigns_id',
+        'main_image',
+        'description',
+      ],
     })
   );
 
@@ -219,8 +227,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
     images: TImage[];
     sessions: TSession[];
     bastions: TBastion[];
+    parties: TParty[];
   } | null>();
   const [selectedCampaignId, setSelectedCampaignId] = useState<number>(2);
+
+  console.log(data);
 
   return (
     <html lang="en">
@@ -243,6 +254,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             campaigns: [],
             sessions: data?.sessions ?? [],
             bastions: data?.bastions ?? [],
+            parties: data?.parties ?? [],
           }}
         >
           {!data?.isUserLoggedIn ? (

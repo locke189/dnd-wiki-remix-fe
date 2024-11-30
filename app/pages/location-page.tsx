@@ -4,7 +4,7 @@ import { Link, useFetcher } from '@remix-run/react';
 import { Card, CardContent, CardHeader } from '~/components/ui/card';
 import { EditableText } from '~/components/editable-text';
 import { Button } from '~/components/ui/button';
-import { get, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -66,6 +66,9 @@ import {
 } from '~/components/ui/command';
 import { NpcList } from '~/containers/npc-list';
 import { ImageChooser } from '~/components/image-chooser';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { TParty, TPartyRelationship } from '~/types/party';
+import { PartiesList } from '~/containers/parties-list';
 
 type TLocationPageProps = {
   location?: TLocation;
@@ -84,7 +87,7 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
   );
 
   const appContext = useContext(AppContext);
-  const { sessions, npcs, locations, selectedCampaignId, images } =
+  const { sessions, npcs, locations, selectedCampaignId, images, parties } =
     appContext || {};
 
   const fetcher = useFetcher();
@@ -112,6 +115,18 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
     data: npcs || [],
     selectedCampaignId: selectedCampaignId ?? 0,
   }); // sessions
+
+  const {
+    dataInCampaign: partiesInCampaign,
+    rowSelection: partiesRowSelection,
+    getSelectedRelations: getSelectedPartiesRelations,
+    setRowSelection: setPartiesRowSelection,
+  } = useModelList<TPartyRelationship, TParty>({
+    relations: location?.Parties || [],
+    relationsKey: 'Parties_id',
+    data: parties || [],
+    selectedCampaignId: selectedCampaignId ?? 0,
+  });
 
   // const isLoading = fetcher.state === 'loading';
 
@@ -157,6 +172,7 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
           main_image: selectedImageId ?? null,
           // Allied_Players: getSelectedPlayerRelations(playersRowSelection),
           // Locations: getSelectedLocationRelations(locationRowSelection),
+          Parties: getSelectedPartiesRelations(partiesRowSelection),
         }),
       },
       {
@@ -198,6 +214,10 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
 
   const locationNpcs = npcs?.filter((npc) =>
     location?.Npcs?.find((p) => p.Npc_id === npc.id)
+  );
+
+  const locationParties = parties?.filter((party) =>
+    location?.Parties?.find((p) => p.Parties_id === party.id)
   );
 
   console.log('subLocations', location?.sub_locations);
@@ -295,37 +315,48 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
           <div className="grid auto-rows-min gap-4 lg:grid-cols-12 grid-cols-8 mx-8 space-y-8">
             <div className="col-span-8 lg:col-span-8 mt-8">
               <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-8">
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <EditableText
-                          fieldName="Description"
-                          field={field}
-                          edit={isEditing}
-                          defaultOpen
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="master_notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <EditableText
-                          fieldName="Notes"
-                          field={field}
-                          edit={isEditing}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                <Tabs defaultValue="description" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="description">Description</TabsTrigger>
+                    <TabsTrigger value="master_notes">Notes</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="description">
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <EditableText
+                              fieldName="Description"
+                              field={field}
+                              edit={isEditing}
+                              defaultOpen
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+                  <TabsContent value="master_notes">
+                    <FormField
+                      control={form.control}
+                      name="master_notes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <EditableText
+                              fieldName="Notes"
+                              field={field}
+                              edit={isEditing}
+                              defaultOpen
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+                </Tabs>
               </div>
             </div>
             <div className="col-span-4 lg:col-span-4">
@@ -364,6 +395,13 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
                             title="NPCs"
                             data={locationNpcs}
                             routePrefix="/npc/"
+                          />
+                        </div>
+                        <div>
+                          <AvatarList<TParty>
+                            title="Parties"
+                            data={locationParties}
+                            routePrefix="/party/"
                           />
                         </div>
                         <div className="flex flex-col gap-2">
@@ -523,6 +561,12 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
                           rowSelection={npcsRowSelection}
                           setRowSelection={setNpcRowSelection}
                           buttonLabel="Choose NPCs"
+                        />
+                        <PartiesList
+                          parties={partiesInCampaign}
+                          rowSelection={partiesRowSelection}
+                          setRowSelection={setPartiesRowSelection}
+                          buttonLabel="Choose Parties"
                         />
                       </div>
                     </>

@@ -59,7 +59,9 @@ import { PlayersList } from '~/containers/players-list';
 import { TLocation, TLocationsRelationship } from '~/types/location';
 import { LocationsList } from '~/containers/locations-list';
 import { ImageChooser } from '~/components/image-chooser';
-import { set } from 'date-fns';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { TParty, TPartyRelationship } from '~/types/party';
+import { PartiesList } from '~/containers/parties-list';
 
 type TNpcPageProps = {
   npc?: TNpc;
@@ -75,7 +77,7 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
   );
 
   const appContext = useContext(AppContext);
-  const { sessions, players, locations, selectedCampaignId, images } =
+  const { sessions, players, locations, selectedCampaignId, images, parties } =
     appContext || {};
 
   const fetcher = useFetcher();
@@ -88,6 +90,18 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
     relations: npc?.Allied_Players || [],
     relationsKey: 'Player_id',
     data: players || [],
+    selectedCampaignId: selectedCampaignId ?? 0,
+  });
+
+  const {
+    rowSelection: partyRowSelection,
+    getSelectedRelations: getSelectedPartyRelations,
+    setRowSelection: setPartyRowSelection,
+    dataInCampaign: partiesInCampaign,
+  } = useModelList<TPartyRelationship, TParty>({
+    relations: npc?.Parties || [],
+    relationsKey: 'Parties_id',
+    data: parties || [],
     selectedCampaignId: selectedCampaignId ?? 0,
   });
 
@@ -141,6 +155,7 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
           Allied_Players: getSelectedPlayerRelations(playersRowSelection),
           Locations: getSelectedLocationRelations(locationRowSelection),
           main_image: selectedImageId ?? null,
+          Parties: getSelectedPartyRelations(partyRowSelection),
         }),
       },
       {
@@ -184,6 +199,10 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
 
   const npcLocations = locations?.filter((location) =>
     npc?.Locations?.find((l) => l.Locations_id === location.id)
+  );
+
+  const npcParties = parties?.filter((party) =>
+    npc?.Parties?.find((p) => p.Parties_id === party.id)
   );
 
   return (
@@ -278,52 +297,67 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
           <div className="grid auto-rows-min gap-4 lg:grid-cols-12 grid-cols-8 mx-8 space-y-8">
             <div className="col-span-8 lg:col-span-8 mt-8">
               <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-8">
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <EditableText
-                          fieldName="Description"
-                          field={field}
-                          edit={isEditing}
-                          defaultOpen
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="story"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <EditableText
-                          fieldName="Story"
-                          field={field}
-                          edit={isEditing}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="master_notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <EditableText
-                          fieldName="Notes"
-                          field={field}
-                          edit={isEditing}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                <Tabs defaultValue="description" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="description">Description</TabsTrigger>
+                    <TabsTrigger value="story">Story</TabsTrigger>
+                    <TabsTrigger value="master_notes">Notes</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="description">
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <EditableText
+                              fieldName="Description"
+                              field={field}
+                              edit={isEditing}
+                              defaultOpen
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+                  <TabsContent value="story">
+                    <FormField
+                      control={form.control}
+                      name="story"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <EditableText
+                              fieldName="Story"
+                              field={field}
+                              edit={isEditing}
+                              defaultOpen
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+                  <TabsContent value="master_notes">
+                    <FormField
+                      control={form.control}
+                      name="master_notes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <EditableText
+                              fieldName="Notes"
+                              field={field}
+                              edit={isEditing}
+                              defaultOpen
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+                </Tabs>
               </div>
             </div>
             <div className="col-span-4 lg:col-span-4">
@@ -362,6 +396,13 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
                             title="Allied Players"
                             data={npcPlayers}
                             routePrefix="/player/"
+                          />
+                        </div>
+                        <div>
+                          <AvatarList<TParty>
+                            title="Parties"
+                            data={npcParties}
+                            routePrefix="/party/"
                           />
                         </div>
                         <div className="flex flex-col gap-2">
@@ -520,6 +561,12 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
                           rowSelection={locationRowSelection}
                           setRowSelection={setLocationRowSelection}
                           buttonLabel="Choose Locations"
+                        />
+                        <PartiesList
+                          parties={partiesInCampaign}
+                          rowSelection={partyRowSelection}
+                          setRowSelection={setPartyRowSelection}
+                          buttonLabel="Choose Parties"
                         />
                       </div>
                     </>

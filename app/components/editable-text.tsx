@@ -12,9 +12,17 @@ export const EditableText: React.FC<{
   field?: FieldValues;
   edit?: boolean;
   defaultOpen?: boolean;
-}> = ({ fieldName, field, edit = false, defaultOpen = false }) => {
+  collapsible?: boolean;
+}> = ({
+  fieldName,
+  field,
+  edit = false,
+  defaultOpen = false,
+  collapsible = false,
+}) => {
   const [isOpened, setIsOpened] = useState(defaultOpen);
-  return (
+
+  return collapsible ? (
     <article className="container mx-auto">
       <Collapsible defaultOpen={defaultOpen} open={isOpened}>
         <CollapsibleTrigger
@@ -49,6 +57,27 @@ export const EditableText: React.FC<{
           )}
         </CollapsibleContent>
       </Collapsible>
+    </article>
+  ) : (
+    <article className="container mx-auto">
+      {edit ? (
+        <>
+          <Textarea {...field} className="h-80 my-4" />
+        </>
+      ) : (
+        <>
+          {
+            <div
+              className="markdown"
+              dangerouslySetInnerHTML={{
+                __html: field?.value
+                  ? marked?.parse(field?.value)
+                  : `<p>(Please add content)</p>`,
+              }}
+            />
+          }
+        </>
+      )}
     </article>
   );
 };

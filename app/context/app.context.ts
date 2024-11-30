@@ -4,6 +4,7 @@ import { TCampaign } from '~/types/campaigns';
 import { TImage } from '~/types/images';
 import { TLocation } from '~/types/location';
 import { TNpc } from '~/types/npc';
+import { TParty } from '~/types/party';
 import { TPlayer } from '~/types/player';
 import { TSession } from '~/types/session';
 
@@ -18,6 +19,7 @@ interface AppContextProps {
   locations: TLocation[];
   images: TImage[];
   bastions: TBastion[];
+  parties: TParty[];
 }
 
 export const AppContext = createContext<AppContextProps>({
@@ -31,4 +33,5 @@ export const AppContext = createContext<AppContextProps>({
   locations: [],
   images: [],
   bastions: [],
+  parties: [],
 });

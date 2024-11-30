@@ -6,6 +6,7 @@ import {
   Gamepad2,
   Map,
   Plus,
+  ScrollText,
   ShoppingBasket,
   User2,
 } from 'lucide-react';
@@ -29,8 +30,9 @@ import {
 } from '~/components/ui/sidebar';
 import { AppContext } from '~/context/app.context';
 import { mapLocationTypeToIcon } from '~/lib/locations';
-import { TLocation, TLocationType } from '~/types/location';
+import { TLocation } from '~/types/location';
 import { TNpc } from '~/types/npc';
+import { TParty } from '~/types/party';
 
 export type TSession = {
   id: number;
@@ -50,10 +52,11 @@ export type TAppSidebarContentProps = {
   players: TPlayer[];
   npcs: TNpc[];
   locations: TLocation[];
+  parties: TParty[];
 };
 
 export const AppSidebarContent: React.FC = () => {
-  const { sessions, players, npcs, locations } =
+  const { sessions, players, npcs, locations, parties } =
     useLoaderData<TAppSidebarContentProps>();
   const context = useContext(AppContext);
 
@@ -76,6 +79,14 @@ export const AppSidebarContent: React.FC = () => {
       )
     )
     .sort((a, b) => (a.name > b.name ? 1 : -1));
+
+  const selectedCampaignParties = parties.filter((party) =>
+    party.campaigns.some(
+      (campaign) => campaign.campaigns_id === context?.selectedCampaignId
+    )
+  );
+
+  console.log(selectedCampaignParties, parties);
 
   const getLocationsDom: (parent: null | number) => ReactNode = (
     parent = null
@@ -241,6 +252,34 @@ export const AppSidebarContent: React.FC = () => {
                 </SidebarMenuAction>
                 <CollapsibleContent>
                   <SidebarMenuSub className="pr-0 mr-0">{dom}</SidebarMenuSub>
+                </CollapsibleContent>
+              </SidebarMenuItem>
+            </Collapsible>
+          </SidebarMenu>
+          <SidebarMenu>
+            <Collapsible className="group/collapsible">
+              <SidebarMenuItem>
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton asChild>
+                    <div>
+                      <ScrollText />
+                      <span>Parties/Factions</span>
+                    </div>
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <SidebarMenuAction asChild>
+                  <Link to="/party/new">
+                    <Plus /> <span className="sr-only">New Party</span>
+                  </Link>
+                </SidebarMenuAction>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    {selectedCampaignParties?.map((party) => (
+                      <SidebarMenuSubItem key={party.name}>
+                        <Link to={`/party/${party.id}`}>{party.name}</Link>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
                 </CollapsibleContent>
               </SidebarMenuItem>
             </Collapsible>

@@ -1,5 +1,6 @@
 import { TBastion } from './bastion';
 import { TNpcRelationship } from './npc';
+import { TPartyRelationship } from './party';
 import { TSessionRelationship } from './session';
 
 export type TPlayer = {
@@ -26,6 +27,7 @@ export type TPlayer = {
   Allied_npcs: TNpcRelationship[];
   sessions: TSessionRelationship[];
   bastions: TBastion[];
+  Parties: TPartyRelationship[];
 };
 
 export type TPlayerRelationship = {

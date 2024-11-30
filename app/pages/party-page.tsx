@@ -1,13 +1,7 @@
 import React, { useContext, useEffect } from 'react';
 import { useFetcher } from '@remix-run/react';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '~/components/ui/card';
+import { Card, CardContent, CardHeader } from '~/components/ui/card';
 import { EditableText } from '~/components/editable-text';
 import { Button } from '~/components/ui/button';
 import { useForm } from 'react-hook-form';
@@ -15,10 +9,8 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem } from '~/components/ui/form';
 import { EditableInput } from '~/components/editable-input';
-import { format } from 'date-fns';
 
 import { TPlayer, TPlayerRelationship } from '~/types/player';
-import { TSession } from '~/types/session';
 import { LAYOUT_PAGE_HEADER_PORTAL_ID } from '~/models/global';
 import { Portal } from '~/components/portal';
 import { TNpc, TNpcRelationship } from '~/types/npc';
@@ -42,25 +34,30 @@ import { AppContext } from '~/context/app.context';
 import { LocationsList } from '~/containers/locations-list';
 import { PlayersList } from '~/containers/players-list';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { ImageChooser } from '~/components/image-chooser';
+import { TParty } from '~/types/party';
 
-type TSessionPageProps = {
-  gameSession?: TSession;
+type TPartyPageProps = {
+  party?: TParty;
   isNew?: boolean;
 };
 
-export const SessionPage: React.FC<TSessionPageProps> = ({
-  gameSession,
+export const PartyPage: React.FC<TPartyPageProps> = ({
+  party,
   isNew = false,
 }) => {
   const [submitted, setSubmitted] = React.useState(false);
-
   const [isEditing, setIsEditing] = React.useState(isNew);
+  const [selectedImageId, setSelectedImageId] = React.useState(
+    party?.main_image.split('/').pop() ?? ''
+  );
 
   const fetcher = useFetcher();
   // const isLoading = fetcher.state === 'loading';
 
   const appContext = useContext(AppContext);
-  const { locations, npcs, selectedCampaignId, players } = appContext || {};
+  const { locations, npcs, selectedCampaignId, players, images } =
+    appContext || {};
 
   const {
     rowSelection: npcRowSelection,
@@ -68,10 +65,10 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
     setRowSelection: setNpcRowSelection,
     dataInCampaign: npcsInCampaign,
   } = useModelList<TNpcRelationship, TNpc>({
-    relations: gameSession?.Npcs || [],
+    relations: party?.npcs || [],
     relationsKey: 'Npc_id',
     data: npcs || [],
-    selectedCampaignId: gameSession?.campaign ?? selectedCampaignId ?? 0,
+    selectedCampaignId: selectedCampaignId ?? 0,
   });
 
   const {
@@ -80,10 +77,10 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
     setRowSelection: setLocationRowSelection,
     getSelectedRelations: getSelectedLocationRelations,
   } = useModelList<TLocationsRelationship, TLocation>({
-    relations: gameSession?.Locations || [],
+    relations: party?.locations || [],
     relationsKey: 'Locations_id',
     data: locations || [],
-    selectedCampaignId: gameSession?.campaign ?? selectedCampaignId ?? 0,
+    selectedCampaignId: selectedCampaignId ?? 0,
   });
 
   const {
@@ -92,48 +89,37 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
     setRowSelection: setPlayerRowSelection,
     dataInCampaign: playersInCampaign,
   } = useModelList<TPlayerRelationship, TPlayer>({
-    relations: gameSession?.players || [],
+    relations: party?.players || [],
     relationsKey: 'Player_id',
     data: players || [],
-    selectedCampaignId: gameSession?.campaign ?? selectedCampaignId ?? 0,
+    selectedCampaignId: selectedCampaignId ?? 0,
   });
 
   const formSchema = z.object({
     name: z.string().optional(),
-    date: z.date().optional(),
-    recap: z.string().optional(),
-    master_start: z.string().optional(),
-    master_scenes: z.string().optional(),
-    master_secrets: z.string().optional(),
     master_notes: z.string().optional(),
+    description: z.string().optional(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: gameSession?.name ?? '',
-      date:
-        typeof gameSession?.date === 'string'
-          ? (new Date(gameSession?.date) as unknown as Date)
-          : new Date(),
-      recap: gameSession?.recap ?? '',
-      master_start: gameSession?.master_start ?? '',
-      master_scenes: gameSession?.master_scenes ?? '',
-      master_secrets: gameSession?.master_secrets ?? '',
-      master_notes: gameSession?.master_notes ?? '',
+      name: party?.name ?? '',
+      master_notes: party?.master_notes ?? '',
+      description: party?.description ?? '',
     },
   });
 
-  const playersInSession = players?.filter((player) =>
-    gameSession?.players?.find((p) => p.Player_id === player.id)
+  const playersInParty = players?.filter((player) =>
+    party?.players?.find((p) => p.Player_id === player.id)
   );
 
-  const npcsInSession = npcs?.filter((npc) =>
-    gameSession?.Npcs?.find((n) => n.Npc_id === npc.id)
+  const npcsInParty = npcs?.filter((npc) =>
+    party?.npcs?.find((n) => n.Npc_id === npc.id)
   );
 
-  const locationsInSession = locationsInCampaign?.filter((location) =>
-    gameSession?.Locations?.find((l) => l.Locations_id === location.id)
+  const locationsInParty = locationsInCampaign?.filter((location) =>
+    party?.locations?.find((l) => l.Locations_id === location.id)
   );
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
@@ -143,9 +129,10 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
         data: JSON.stringify({
           ...values,
           players: getSelectedPlayerRelations(playerRowSelection),
-          Npcs: getSelectedNpcRelations(npcRowSelection),
-          Locations: getSelectedLocationRelations(locationRowSelection),
-          campaign: gameSession?.campaign,
+          npcs: getSelectedNpcRelations(npcRowSelection),
+          locations: getSelectedLocationRelations(locationRowSelection),
+          campaign: selectedCampaignId,
+          main_image: selectedImageId,
         }),
       },
       {
@@ -160,7 +147,7 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
       {},
       {
         method: 'POST',
-        action: '/session/' + gameSession?.id + '/delete',
+        action: '/session/' + party?.id + '/delete',
       }
     );
   };
@@ -199,29 +186,6 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                     </FormItem>
                   )}
                 />
-                <p className="text-xl text-slate-500 align-middle">
-                  <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <EditableInput
-                          fieldName="Date"
-                          field={field}
-                          edit={isEditing}
-                          type="date"
-                          noLabel
-                        >
-                          <CardDescription>
-                            {field.value
-                              ? format(field.value, 'PPP')
-                              : 'No date'}
-                          </CardDescription>
-                        </EditableInput>
-                      </FormItem>
-                    )}
-                  />
-                </p>
               </div>
               <div className="flex gap-3">
                 {!isNew && (
@@ -282,15 +246,10 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
           <div className="grid auto-rows-min gap-4 lg:grid-cols-12 grid-cols-8 mx-8 space-y-8">
             <div className="col-span-8 lg:col-span-8 mt-8">
               <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-8">
-                <Tabs defaultValue="recap" className="w-full">
+                <Tabs defaultValue="description" className="w-full">
                   <TabsList>
+                    <TabsTrigger value="description">Description</TabsTrigger>
                     <TabsTrigger value="master_notes">Notes</TabsTrigger>
-                    <TabsTrigger value="recap">Recap</TabsTrigger>
-                    <TabsTrigger value="master_start">Strong Start</TabsTrigger>
-                    <TabsTrigger value="master_scenes">
-                      Possible Scenes
-                    </TabsTrigger>
-                    <TabsTrigger value="master_secrets">Secrets</TabsTrigger>
                   </TabsList>
                   <TabsContent value="master_notes">
                     <FormField
@@ -310,69 +269,15 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                       )}
                     />
                   </TabsContent>
-                  <TabsContent value="recap">
+                  <TabsContent value="description">
                     <FormField
                       control={form.control}
-                      name="recap"
+                      name="description"
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
                             <EditableText
-                              fieldName="Recap"
-                              field={field}
-                              edit={isEditing}
-                              defaultOpen
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </TabsContent>
-                  <TabsContent value="master_start">
-                    <FormField
-                      control={form.control}
-                      name="master_start"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <EditableText
-                              fieldName="Strong Start"
-                              field={field}
-                              edit={isEditing}
-                              defaultOpen
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </TabsContent>
-                  <TabsContent value="master_scenes">
-                    <FormField
-                      control={form.control}
-                      name="master_scenes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <EditableText
-                              fieldName="Possible Scenes"
-                              field={field}
-                              edit={isEditing}
-                              defaultOpen
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </TabsContent>
-                  <TabsContent value="master_secrets">
-                    <FormField
-                      control={form.control}
-                      name="master_secrets"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <EditableText
-                              fieldName="Secrets"
+                              fieldName="Description"
                               field={field}
                               edit={isEditing}
                               defaultOpen
@@ -390,6 +295,11 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                 <CardContent className="pt-6 flex flex-col gap-3 ">
                   {isEditing ? (
                     <>
+                      <ImageChooser
+                        images={images ?? []}
+                        selectedImageId={selectedImageId}
+                        setSelectedImageId={setSelectedImageId}
+                      />
                       <PlayersList
                         players={playersInCampaign}
                         rowSelection={playerRowSelection}
@@ -411,18 +321,27 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                     </>
                   ) : (
                     <>
+                      <CardHeader
+                        className="rounded-t-xl bg-muted/50 h-[300px]"
+                        style={{
+                          backgroundImage: `url('${party?.main_image}')`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          backgroundRepeat: 'no-repeat',
+                        }}
+                      ></CardHeader>
                       <AvatarList<TPlayer>
-                        data={playersInSession}
+                        data={playersInParty}
                         routePrefix="/player/"
                         title="Players"
                       />
                       <AvatarList<TNpc>
-                        data={npcsInSession}
+                        data={npcsInParty}
                         routePrefix="/npc/"
                         title="Npcs"
                       />
                       <AvatarList<TLocation>
-                        data={locationsInSession}
+                        data={locationsInParty}
                         routePrefix="/location/"
                         title="Locations"
                       />
@@ -432,131 +351,6 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
               </Card>
             </div>
           </div>
-
-          {/* <div className="flex flex-1 flex-col gap-4 p-4">
-            <div className="grid auto-rows-min gap-4 lg:grid-cols-3">
-              <Card className=" rounded-xl bg-muted/50 h-full">
-                <CardDescription className="px-6 pb-6 py-6">
-                  {isEditing ? (
-                    <PlayersList
-                      players={playersInCampaign}
-                      rowSelection={playerRowSelection}
-                      setRowSelection={setPlayerRowSelection}
-                      buttonLabel="Add Player"
-                    />
-                  ) : (
-                    <AvatarList<TPlayer>
-                      data={playersInSession}
-                      routePrefix="/player/"
-                      title="Players"
-                    />
-                  )}
-                </CardDescription>
-              </Card>
-              <Card className=" rounded-xl bg-muted/50 flex relative h-full">
-                <CardDescription className="px-6 pb-6 py-6">
-                  {isEditing ? (
-                    <NpcList
-                      npcs={npcsInCampaign}
-                      rowSelection={npcRowSelection}
-                      setRowSelection={setNpcRowSelection}
-                      buttonLabel="Add NPC"
-                    />
-                  ) : (
-                    <AvatarList<TNpc>
-                      data={npcsInSession}
-                      routePrefix="/npc/"
-                      title="Npcs"
-                    />
-                  )}
-                </CardDescription>
-              </Card>
-              <Card className=" rounded-xl bg-muted/50 flex relative h-full">
-                <CardDescription className="px-6 pb-6 py-6">
-                  {isEditing ? (
-                    <LocationsList
-                      locations={locationsInCampaign}
-                      rowSelection={locationRowSelection}
-                      setRowSelection={setLocationRowSelection}
-                      buttonLabel="Add Location"
-                    />
-                  ) : (
-                    <AvatarList<TLocation>
-                      data={locationsInSession}
-                      routePrefix="/location/"
-                      title="Locations"
-                    />
-                  )}
-                </CardDescription>
-              </Card>
-            </div>
-            <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-8">
-              <FormField
-                control={form.control}
-                name="recap"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <EditableText
-                        fieldName="Recap"
-                        field={field}
-                        edit={isEditing}
-                        defaultOpen
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="master_start"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <EditableText
-                        fieldName="Strong Start"
-                        field={field}
-                        edit={isEditing}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="master_scenes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <EditableText
-                        fieldName="Possible Scenes"
-                        field={field}
-                        edit={isEditing}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="master_secrets"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <EditableText
-                        fieldName="Secrets"
-                        field={field}
-                        edit={isEditing}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div> */}
         </form>
       </Form>
     </>

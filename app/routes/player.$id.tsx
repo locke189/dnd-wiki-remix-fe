@@ -14,6 +14,7 @@ import { TSession } from '~/types/session';
 import { TNpc } from '~/types/npc';
 import { authenticator } from '~/lib/authentication.server';
 import { client } from '~/lib/directus.server';
+import { TBastion } from '~/types/bastion';
 
 export const meta: MetaFunction = () => {
   return [
@@ -37,7 +38,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   const player = await client.request(
     readItem('Player', id, {
-      fields: ['*', 'campaigns.*', 'Allied_npcs.*', 'sessions.*', 'bastions.*'],
+      fields: [
+        '*',
+        'campaigns.*',
+        'Allied_npcs.*',
+        'sessions.*',
+        'bastions.*',
+        'Parties.*',
+      ],
     })
   );
 
@@ -50,7 +58,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     player: {
       ...player,
       main_image: getImageUrl(player.main_image),
-      bastions: player.bastions.map((b) => ({
+      bastions: player.bastions.map((b: TBastion) => ({
         ...b,
         main_image: getImageUrl(b.main_image),
       })),
