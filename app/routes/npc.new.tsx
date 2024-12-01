@@ -7,12 +7,10 @@ import {
 import { redirect, useParams } from '@remix-run/react';
 import { createItem } from '@directus/sdk';
 
-import { SessionPage } from '~/pages/session-page';
-import { TSession } from '~/types/session';
-import { AppContext } from '~/context/app.context';
-import { useContext } from 'react';
 import { authenticator } from '~/lib/authentication.server';
 import { client } from '~/lib/directus.server';
+import { TNpc } from '~/types/npc';
+import { NpcPage } from '~/pages/npc-page';
 
 export const meta: MetaFunction = () => {
   return [
@@ -38,38 +36,55 @@ export async function action({ request }: ActionFunctionArgs) {
     failureRedirect: '/login',
   });
 
+  //url
+  const url = new URL(request.headers.get('Referer') || '');
+  console.log(url, url.pathname, request);
+
   client.setToken(user?.token);
+
   const body = await request.formData();
+
+  console.log('creating npc', body);
 
   const data = JSON.parse(String(body.get('data')));
 
-  const gameSession = await client.request(
-    createItem('sessions', data as object)
-  );
+  const newNpc = await client.request(createItem('Npc', data as object));
 
-  return redirect(`/session/${gameSession.id}`);
+  return url.pathname === '/npc/new'
+    ? redirect(`/npc/${newNpc.id}`)
+    : json({ data: newNpc });
 }
 
 export default function Index() {
   const { id } = useParams();
 
-  const appContext = useContext(AppContext);
-  const { selectedCampaignId } = appContext;
+  // const appContext = useContext(AppContext);
+  // const { selectedCampaignId } = appContext;
 
-  const emptySession: TSession = {
+  const emptyNpc: TNpc = {
     name: '',
-    date: new Date().toISOString(),
-    campaign: selectedCampaignId,
     id: 0,
-    players: [],
-    Npcs: [],
     Locations: [],
+    race: '',
+    class: '',
+    gender: '',
+    status: '',
+    age: '',
+    main_image: '',
+    description: '',
+    story: '',
+    master_notes: '',
+    Allied_Players: [],
+    campaigns: [],
+    sessions: [],
+    Parties: [],
+    Items: [],
   };
 
   return (
     // navbar
     <>
-      <SessionPage gameSession={emptySession} key={id} isNew={true} />
+      <NpcPage npc={emptyNpc} key={id} isNew={true} />
     </>
   );
 }

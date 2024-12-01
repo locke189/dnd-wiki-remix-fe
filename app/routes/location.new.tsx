@@ -7,12 +7,10 @@ import {
 import { redirect, useParams } from '@remix-run/react';
 import { createItem } from '@directus/sdk';
 
-import { SessionPage } from '~/pages/session-page';
-import { TSession } from '~/types/session';
-import { AppContext } from '~/context/app.context';
-import { useContext } from 'react';
 import { authenticator } from '~/lib/authentication.server';
 import { client } from '~/lib/directus.server';
+import { TLocation } from '~/types/location';
+import { LocationPage } from '~/pages/location-page';
 
 export const meta: MetaFunction = () => {
   return [
@@ -38,38 +36,54 @@ export async function action({ request }: ActionFunctionArgs) {
     failureRedirect: '/login',
   });
 
+  //url
+  const url = new URL(request.headers.get('Referer') || '');
+
   client.setToken(user?.token);
+
   const body = await request.formData();
+
+  console.log('creating Location', body);
 
   const data = JSON.parse(String(body.get('data')));
 
-  const gameSession = await client.request(
-    createItem('sessions', data as object)
+  const newLocation = await client.request(
+    createItem('Locations', data as object)
   );
 
-  return redirect(`/session/${gameSession.id}`);
+  return url.pathname === '/location/new'
+    ? redirect(`/location/${newLocation.id}`)
+    : json({ data: newLocation });
 }
 
 export default function Index() {
   const { id } = useParams();
 
-  const appContext = useContext(AppContext);
-  const { selectedCampaignId } = appContext;
+  // const appContext = useContext(AppContext);
+  // const { selectedCampaignId } = appContext;
 
-  const emptySession: TSession = {
-    name: '',
-    date: new Date().toISOString(),
-    campaign: selectedCampaignId,
+  const emptyLocation: TLocation = {
     id: 0,
-    players: [],
+    status: 'draft',
+    name: '',
+    type: 'plane',
+    image: '',
+    main_image: '',
+    description: '',
+    master_notes: '',
+    parent_location: 0,
+    campaigns: [],
     Npcs: [],
-    Locations: [],
+    sessions: [],
+    sub_locations: [],
+    Parties: [],
+    items: [],
   };
 
   return (
     // navbar
     <>
-      <SessionPage gameSession={emptySession} key={id} isNew={true} />
+      <LocationPage location={emptyLocation} key={id} isNew={true} />
     </>
   );
 }

@@ -46,7 +46,7 @@ export const NewNpc: React.FC<TNewNpc> = ({ children }) => {
   const [submitted, setSubmitted] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const [selectedImageId, setSelectedImageId] = useState('0');
+  const [selectedImageId, setSelectedImageId] = useState('');
   // const [chooseImage, setChooseImage] = useState(false);
   // const [imageFilters, setImageFilters] = useState<string[]>(['npc']);`
 
@@ -97,7 +97,7 @@ export const NewNpc: React.FC<TNewNpc> = ({ children }) => {
       },
       {
         method: 'POST',
-        action: '/new-npc?index',
+        action: '/npc/new?index',
       }
     );
   };

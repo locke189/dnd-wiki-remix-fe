@@ -1,6 +1,6 @@
 export type TCampaign = {
   description: string;
-  id: string;
+  id: number;
   image: string | null;
   locations: string[];
   master_notes: string | null;
@@ -9,4 +9,8 @@ export type TCampaign = {
   quests: string[];
   sessions: string[];
   status: string;
+};
+
+export type TCampaignRelationships = {
+  campaigns_id: number;
 };

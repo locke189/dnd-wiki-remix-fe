@@ -32,7 +32,7 @@ import {
 import { Portal } from '~/components/portal';
 import { TNpc } from '~/types/npc';
 import { AvatarList } from '~/components/avatar-list';
-import { Pen, Save, Trash } from 'lucide-react';
+import { Pen, Save, Shuffle, Trash } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,6 +64,7 @@ import { TParty, TPartyRelationship } from '~/types/party';
 import { PartiesList } from '~/containers/parties-list';
 import { TItem, TItemRelationship } from '~/types/item';
 import { ItemsList } from '~/containers/items-list';
+import { randomizeNPC } from '~/lib/utils';
 
 type TNpcPageProps = {
   npc?: TNpc;
@@ -173,9 +174,18 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
           ...values,
           Allied_Players: getSelectedPlayerRelations(playersRowSelection),
           Locations: getSelectedLocationRelations(locationRowSelection),
-          main_image: selectedImageId ?? null,
           Parties: getSelectedPartyRelations(partyRowSelection),
           Items: getSelectedItemsRelations(itemsRowSelection),
+          ...(selectedImageId && {
+            main_image: selectedImageId,
+          }),
+          ...(isNew && {
+            campaigns: [
+              {
+                campaigns_id: selectedCampaignId,
+              },
+            ],
+          }),
         }),
       },
       {
@@ -193,6 +203,15 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
         action: '/Npc/' + npc?.id + '/delete',
       }
     );
+  };
+
+  const onRandomize = () => {
+    const randomNpc = randomizeNPC();
+    form.setValue('name', randomNpc.name);
+    form.setValue('gender', randomNpc.gender);
+    form.setValue('class', randomNpc.class);
+    form.setValue('race', randomNpc.race);
+    form.setValue('description', randomNpc.description);
   };
 
   useEffect(() => {
@@ -264,6 +283,18 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
                 )}
               </div>
               <div className="flex gap-3">
+                {isNew && (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      onRandomize();
+                    }}
+                  >
+                    <>
+                      <Shuffle /> Randomize
+                    </>
+                  </Button>
+                )}
                 {!isNew && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>

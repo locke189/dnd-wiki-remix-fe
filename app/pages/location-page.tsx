@@ -84,8 +84,8 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
   const [submitted, setSubmitted] = React.useState(false);
 
   const [isEditing, setIsEditing] = React.useState(isNew);
-  const [selectedImageId, setSelectedImageId] = React.useState<string>(
-    location?.main_image.split('/').pop() ?? ''
+  const [selectedImageId, setSelectedImageId] = React.useState<string | null>(
+    location?.main_image.split('/').pop() ?? null
   );
 
   const appContext = useContext(AppContext);
@@ -180,19 +180,29 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log('Submitting');
+    console.log('Submitting', values.parent_location);
     setSubmitted(true);
     fetcher.submit(
       {
         data: JSON.stringify({
           ...values,
-          parent_location:
-            values.parent_location === -1 ? null : values.parent_location,
           Npcs: getSelectedNpcRelations(npcsRowSelection),
-          main_image: selectedImageId ?? null,
+          ...(selectedImageId && {
+            main_image: selectedImageId,
+          }),
+          parent_location:
+            values.parent_location === 0 ? null : values.parent_location,
           // Allied_Players: getSelectedPlayerRelations(playersRowSelection),
           // Locations: getSelectedLocationRelations(locationRowSelection),
           Parties: getSelectedPartiesRelations(partiesRowSelection),
+          items: getSelectedItemsRelations(itemsRowSelection),
+          ...(isNew && {
+            campaigns: [
+              {
+                campaigns_id: selectedCampaignId,
+              },
+            ],
+          }),
         }),
       },
       {

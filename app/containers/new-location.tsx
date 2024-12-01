@@ -112,7 +112,7 @@ export const NewLocation: React.FC<TNewLocationProps> = ({ children }) => {
       },
       {
         method: 'POST',
-        action: '/new-location?index',
+        action: '/location/new?index',
       }
     );
   };

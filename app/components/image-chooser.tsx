@@ -1,6 +1,6 @@
 import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { ChevronRight, CircleOff } from 'lucide-react';
-import React, { FormEventHandler, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TImage } from '~/types/images';
 import { ScrollBar } from './ui/scroll-area';
 import {
@@ -14,23 +14,18 @@ import {
   DialogTrigger,
 } from './ui/dialog';
 import { Button } from './ui/button';
-import { z } from 'zod';
-import { Form, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useFetcher } from '@remix-run/react';
 import { Input } from './ui/input';
-import { useFileUpload } from '~/hooks/useFileUpload';
-import { FormLabel } from './ui/form';
+
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from './ui/collapsible';
-import { set } from 'date-fns';
 
 export type TImageChooser = {
   images: TImage[];
-  selectedImageId: string;
+  selectedImageId: string | null;
   setSelectedImageId: (id: string) => void;
   children?: React.ReactNode;
 };
