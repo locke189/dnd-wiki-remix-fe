@@ -10,8 +10,8 @@ import { readItem, updateItem } from '@directus/sdk';
 import { authenticator } from '~/lib/authentication.server';
 import { client } from '~/lib/directus.server';
 import { getImageUrl } from '~/lib/utils';
-import { PartyPage } from '~/pages/party-page';
-import { TParty } from '~/types/party';
+import { TItem } from '~/types/item';
+import { ItemPage } from '~/pages/item-page';
 
 export const meta: MetaFunction = () => {
   return [
@@ -33,17 +33,17 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     return redirect('/');
   }
 
-  const party = await client.request(
-    readItem('Parties', id, {
-      fields: ['*', 'players.*', 'npcs.*', 'locations.*'],
+  const item = await client.request(
+    readItem('Items', id, {
+      fields: ['*', 'Players.*', 'Npcs.*', 'Locations.*'],
     })
   );
 
   return json({
     isUserLoggedIn: true,
-    party: {
-      ...party,
-      main_image: getImageUrl(party.main_image),
+    item: {
+      ...item,
+      main_image: getImageUrl(item.main_image),
     },
   });
 }
@@ -64,7 +64,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   const data = JSON.parse(String(body.get('data')));
 
-  const party = await client.request(updateItem('Parties', id, data as object));
+  const party = await client.request(updateItem('Items', id, data as object));
 
   return json({ data: party });
 }
@@ -73,13 +73,13 @@ export default function Index() {
   const { id } = useParams();
   const data = useLoaderData<{
     isUserLoggedIn: boolean;
-    party: TParty;
+    item: TItem;
   }>();
 
-  const { party } = data || {};
+  const { item } = data || {};
 
   return (
     // navbar
-    <PartyPage party={party} key={id} />
+    <ItemPage item={item} key={id} />
   );
 }

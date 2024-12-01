@@ -45,6 +45,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         'sessions.*',
         'bastions.*',
         'Parties.*',
+        'Spells.*',
+        'items.*',
       ],
     })
   );

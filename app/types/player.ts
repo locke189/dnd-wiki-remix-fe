@@ -1,4 +1,5 @@
 import { TBastion } from './bastion';
+import { TItemRelationship } from './item';
 import { TNpcRelationship } from './npc';
 import { TPartyRelationship } from './party';
 import { TSessionRelationship } from './session';
@@ -28,6 +29,8 @@ export type TPlayer = {
   sessions: TSessionRelationship[];
   bastions: TBastion[];
   Parties: TPartyRelationship[];
+  Spells: [];
+  items: TItemRelationship[];
 };
 
 export type TPlayerRelationship = {

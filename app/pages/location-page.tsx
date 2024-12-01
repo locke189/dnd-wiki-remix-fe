@@ -69,6 +69,8 @@ import { ImageChooser } from '~/components/image-chooser';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { TParty, TPartyRelationship } from '~/types/party';
 import { PartiesList } from '~/containers/parties-list';
+import { TItem, TItemRelationship } from '~/types/item';
+import { ItemsList } from '~/containers/items-list';
 
 type TLocationPageProps = {
   location?: TLocation;
@@ -87,8 +89,15 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
   );
 
   const appContext = useContext(AppContext);
-  const { sessions, npcs, locations, selectedCampaignId, images, parties } =
-    appContext || {};
+  const {
+    sessions,
+    npcs,
+    locations,
+    selectedCampaignId,
+    images,
+    parties,
+    items,
+  } = appContext || {};
 
   const fetcher = useFetcher();
 
@@ -126,6 +135,17 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
     relationsKey: 'Parties_id',
     data: parties || [],
     selectedCampaignId: selectedCampaignId ?? 0,
+  });
+
+  const {
+    dataInCampaign: itemsInCampaign,
+    rowSelection: itemsRowSelection,
+    getSelectedRelations: getSelectedItemsRelations,
+    setRowSelection: setItemsRowSelection,
+  } = useModelList<TItemRelationship, TItem>({
+    relations: location?.items || [],
+    relationsKey: 'Items_id',
+    data: items || [],
   });
 
   // const isLoading = fetcher.state === 'loading';
@@ -220,7 +240,9 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
     location?.Parties?.find((p) => p.Parties_id === party.id)
   );
 
-  console.log('subLocations', location?.sub_locations);
+  const locationItems = items?.filter((item) =>
+    location?.items?.find((p) => p.Items_id === item.id)
+  );
 
   return (
     // navbar
@@ -404,6 +426,13 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
                             routePrefix="/party/"
                           />
                         </div>
+                        <div>
+                          <AvatarList<TItem>
+                            title="Items"
+                            data={locationItems}
+                            routePrefix="/item/"
+                          />
+                        </div>
                         <div className="flex flex-col gap-2">
                           <h2 className="text-lg font-bold">Sessions</h2>
                           <ScrollArea className="h-32 w-full rounded-md border">
@@ -567,6 +596,12 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
                           rowSelection={partiesRowSelection}
                           setRowSelection={setPartiesRowSelection}
                           buttonLabel="Choose Parties"
+                        />
+                        <ItemsList
+                          items={itemsInCampaign}
+                          rowSelection={itemsRowSelection}
+                          setRowSelection={setItemsRowSelection}
+                          buttonLabel="Choose Items"
                         />
                       </div>
                     </>

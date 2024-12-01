@@ -62,6 +62,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { BastionList } from '~/containers/bastion-list';
 import { TParty, TPartyRelationship } from '~/types/party';
 import { PartiesList } from '~/containers/parties-list';
+import { TItem, TItemRelationship } from '~/types/item';
+import { ItemsList } from '~/containers/items-list';
 
 type TPlayerPageProps = {
   player?: TPlayer;
@@ -79,8 +81,15 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
   );
 
   const appContext = useContext(AppContext);
-  const { npcs, selectedCampaignId, sessions, images, bastions, parties } =
-    appContext || {};
+  const {
+    npcs,
+    selectedCampaignId,
+    sessions,
+    images,
+    bastions,
+    parties,
+    items,
+  } = appContext || {};
 
   const fetcher = useFetcher();
   const {
@@ -117,6 +126,16 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
     relationsKey: 'Parties_id',
     data: parties || [],
     selectedCampaignId: selectedCampaignId ?? 0,
+  });
+
+  const {
+    rowSelection: itemRowSelection,
+    getSelectedRelations: getSelectedItemRelations,
+    setRowSelection: setItemRowSelection,
+  } = useModelList<TItemRelationship, TItem>({
+    relations: player?.items || [],
+    relationsKey: 'Items_id',
+    data: items || [],
   });
 
   // const isLoading = fetcher.state === 'loading';
@@ -160,6 +179,7 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
           // bastions: getSelectedBastionRelations(bastionRowSelection),
           Parties: getSelectedPartyRelations(partyRowSelection),
           main_image: selectedImageId ?? null,
+          items: getSelectedItemRelations(itemRowSelection),
         }),
       },
       {
@@ -205,7 +225,9 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
     player?.Parties?.find((p) => p.Parties_id === party.id)
   );
 
-  console.log(parties, playerParties, player);
+  const playerItems = items?.filter((item) =>
+    player?.items?.find((i) => i.Items_id === item.id)
+  );
 
   return (
     // navbar
@@ -422,6 +444,13 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
                             routePrefix="/bastion/"
                           />
                         </div>
+                        <div>
+                          <AvatarList<TItem>
+                            title="Items"
+                            data={playerItems ?? []}
+                            routePrefix="/item/"
+                          />
+                        </div>
                         <div className="flex flex-col gap-2">
                           <h2 className="text-lg font-bold">Sessions</h2>
                           <ScrollArea className="h-32 w-full rounded-md border">
@@ -582,6 +611,12 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
                           rowSelection={npcRowSelection}
                           setRowSelection={setNpcRowSelection}
                           buttonLabel="Choose Allied NPCs"
+                        />
+                        <ItemsList
+                          items={items}
+                          rowSelection={itemRowSelection}
+                          setRowSelection={setItemRowSelection}
+                          buttonLabel="Choose Items"
                         />
                       </div>
                     </div>

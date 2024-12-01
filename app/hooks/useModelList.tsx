@@ -12,7 +12,7 @@ export type TUseModelList<T, M extends TModel> = {
   relations: T[];
   relationsKey: keyof T;
   data: M[];
-  selectedCampaignId: number;
+  selectedCampaignId?: number;
 };
 
 export function useModelList<T, M extends TModel>({
@@ -23,12 +23,16 @@ export function useModelList<T, M extends TModel>({
 }: TUseModelList<T, M>) {
   const dataInCampaign = useMemo(
     () =>
-      data?.filter(
-        (item) =>
+      data?.filter((item) => {
+        if (!item.campaign && !item.campaigns && !selectedCampaignId) {
+          return true;
+        }
+        return (
           item.campaigns?.some(
             (campaign) => campaign.campaigns_id === selectedCampaignId
           ) || item.campaign === selectedCampaignId
-      ),
+        );
+      }),
     [data, selectedCampaignId]
   );
 

@@ -1,3 +1,4 @@
+import { TItemRelationship } from './item';
 import { TLocationsRelationship } from './location';
 import { TPartyRelationship } from './party';
 import { TPlayerRelationship } from './player';
@@ -23,6 +24,7 @@ export type TNpc = {
   }[];
   sessions: TSessionRelationship[];
   Parties: TPartyRelationship[];
+  Items: TItemRelationship[];
 };
 
 export type TNpcRelationship = {

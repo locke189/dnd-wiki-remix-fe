@@ -77,10 +77,7 @@ export default function Index() {
   const { gameSession } = data || {};
 
   return (
-    console.log(data),
-    (
-      // navbar
-      <SessionPage gameSession={gameSession} key={id} />
-    )
+    // navbar
+    <SessionPage gameSession={gameSession} key={id} />
   );
 }

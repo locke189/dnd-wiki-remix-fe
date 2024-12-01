@@ -86,8 +86,6 @@ export const AppSidebarContent: React.FC = () => {
     )
   );
 
-  console.log(selectedCampaignParties, parties);
-
   const getLocationsDom: (parent: null | number) => ReactNode = (
     parent = null
   ) => {

@@ -62,6 +62,8 @@ import { ImageChooser } from '~/components/image-chooser';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { TParty, TPartyRelationship } from '~/types/party';
 import { PartiesList } from '~/containers/parties-list';
+import { TItem, TItemRelationship } from '~/types/item';
+import { ItemsList } from '~/containers/items-list';
 
 type TNpcPageProps = {
   npc?: TNpc;
@@ -77,8 +79,15 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
   );
 
   const appContext = useContext(AppContext);
-  const { sessions, players, locations, selectedCampaignId, images, parties } =
-    appContext || {};
+  const {
+    sessions,
+    players,
+    locations,
+    selectedCampaignId,
+    images,
+    parties,
+    items,
+  } = appContext || {};
 
   const fetcher = useFetcher();
   const {
@@ -103,6 +112,16 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
     relationsKey: 'Parties_id',
     data: parties || [],
     selectedCampaignId: selectedCampaignId ?? 0,
+  });
+
+  const {
+    rowSelection: itemsRowSelection,
+    getSelectedRelations: getSelectedItemsRelations,
+    setRowSelection: setItemsRowSelection,
+  } = useModelList<TItemRelationship, TItem>({
+    relations: npc?.Items || [],
+    relationsKey: 'Items_id',
+    data: items || [],
   });
 
   const {
@@ -156,6 +175,7 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
           Locations: getSelectedLocationRelations(locationRowSelection),
           main_image: selectedImageId ?? null,
           Parties: getSelectedPartyRelations(partyRowSelection),
+          Items: getSelectedItemsRelations(itemsRowSelection),
         }),
       },
       {
@@ -203,6 +223,10 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
 
   const npcParties = parties?.filter((party) =>
     npc?.Parties?.find((p) => p.Parties_id === party.id)
+  );
+
+  const npcItems = items?.filter((item) =>
+    npc?.Items?.find((i) => i.Items_id === item.id)
   );
 
   return (
@@ -405,6 +429,13 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
                             routePrefix="/party/"
                           />
                         </div>
+                        <div>
+                          <AvatarList<TItem>
+                            title="Items"
+                            data={npcItems}
+                            routePrefix="/item/"
+                          />
+                        </div>
                         <div className="flex flex-col gap-2">
                           <h2 className="text-lg font-bold">Sessions</h2>
                           <ScrollArea className="h-32 w-full rounded-md border">
@@ -562,11 +593,19 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
                           setRowSelection={setLocationRowSelection}
                           buttonLabel="Choose Locations"
                         />
+                        <h2 className="text-lg font-bold">Parties/Factions</h2>
                         <PartiesList
                           parties={partiesInCampaign}
                           rowSelection={partyRowSelection}
                           setRowSelection={setPartyRowSelection}
                           buttonLabel="Choose Parties"
+                        />
+                        <h2 className="text-lg font-bold">Items</h2>
+                        <ItemsList
+                          items={items}
+                          rowSelection={itemsRowSelection}
+                          setRowSelection={setItemsRowSelection}
+                          buttonLabel="Choose Items"
                         />
                       </div>
                     </>

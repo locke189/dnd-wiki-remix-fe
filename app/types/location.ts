@@ -1,3 +1,4 @@
+import { TItemRelationship } from './item';
 import { TNpcRelationship } from './npc';
 import { TPartyRelationship } from './party';
 import { TSessionRelationship } from './session';
@@ -48,7 +49,7 @@ export type TLocation = {
   sessions: TSessionRelationship[];
   sub_locations: TLocation[];
   Parties: TPartyRelationship[];
-  items: { Items_id: number }[];
+  items: TItemRelationship[];
 };
 
 export type TLocationsRelationship = {
