@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DialogPortal } from '@radix-ui/react-dialog';
 import { useFetcher } from '@remix-run/react';
-import { CircleOff } from 'lucide-react';
 import { useContext, useEffect, useState } from 'react';
 import { Form, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -23,7 +22,6 @@ import {
   FormLabel,
 } from '~/components/ui/form';
 import { Input } from '~/components/ui/input';
-import { ScrollArea, ScrollBar } from '~/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -35,8 +33,6 @@ import { Textarea } from '~/components/ui/textarea';
 import { AppContext } from '~/context/app.context';
 import { randomizeNPC } from '~/lib/utils';
 import { classOptions, genderOptions, raceOptions } from '~/models/global';
-// import { TCampaign } from '~/types/campaigns';
-// import { TImage } from '~/types/images';
 
 type TNewNpc = {
   children: React.ReactNode;

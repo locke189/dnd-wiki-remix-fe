@@ -1,3 +1,4 @@
+import { TContentTodo } from '~/containers/content-todo-list';
 import { TLocationsRelationship } from './location';
 import { TNpcRelationship } from './npc';
 import { TPlayerRelationship } from './player';
@@ -11,6 +12,8 @@ export type TSession = {
   master_scenes?: string;
   master_secrets?: string;
   master_notes?: string;
+  secret_list?: TContentTodo[];
+  scene_list?: TContentTodo[];
   campaign: number;
   players: TPlayerRelationship[];
   Npcs: TNpcRelationship[];

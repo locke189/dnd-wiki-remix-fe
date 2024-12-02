@@ -1,13 +1,7 @@
 import React, { useContext, useEffect } from 'react';
 import { useFetcher } from '@remix-run/react';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '~/components/ui/card';
+import { Card, CardContent, CardDescription } from '~/components/ui/card';
 import { EditableText } from '~/components/editable-text';
 import { Button } from '~/components/ui/button';
 import { useForm } from 'react-hook-form';
@@ -42,6 +36,7 @@ import { AppContext } from '~/context/app.context';
 import { LocationsList } from '~/containers/locations-list';
 import { PlayersList } from '~/containers/players-list';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { ContentTodoList } from '~/containers/content-todo-list';
 
 type TSessionPageProps = {
   gameSession?: TSession;
@@ -52,9 +47,12 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
   gameSession,
   isNew = false,
 }) => {
+  console.log('gameSession', gameSession);
   const [submitted, setSubmitted] = React.useState(false);
 
   const [isEditing, setIsEditing] = React.useState(isNew);
+  const [secrets, setSecrets] = React.useState(gameSession?.secret_list || []);
+  const [scenes, setScenes] = React.useState(gameSession?.scene_list || []);
 
   const fetcher = useFetcher();
   // const isLoading = fetcher.state === 'loading';
@@ -146,6 +144,8 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
           Npcs: getSelectedNpcRelations(npcRowSelection),
           Locations: getSelectedLocationRelations(locationRowSelection),
           campaign: gameSession?.campaign,
+          secret_list: secrets,
+          scene_list: scenes,
         }),
       },
       {
@@ -287,10 +287,19 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                     <TabsTrigger value="master_notes">Notes</TabsTrigger>
                     <TabsTrigger value="recap">Recap</TabsTrigger>
                     <TabsTrigger value="master_start">Strong Start</TabsTrigger>
-                    <TabsTrigger value="master_scenes">
-                      Possible Scenes
-                    </TabsTrigger>
-                    <TabsTrigger value="master_secrets">Secrets</TabsTrigger>
+                    {gameSession?.master_scenes && (
+                      <TabsTrigger value="master_scenes">
+                        Possible Scenes (Deprecated)
+                      </TabsTrigger>
+                    )}
+                    <TabsTrigger value="scene-list">Scenes</TabsTrigger>
+
+                    {gameSession?.master_secrets && (
+                      <TabsTrigger value="master_secrets">
+                        Secrets (deprecated)
+                      </TabsTrigger>
+                    )}
+                    <TabsTrigger value="secrets-list">Secrets</TabsTrigger>
                   </TabsList>
                   <TabsContent value="master_notes">
                     <FormField
@@ -346,40 +355,60 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                       )}
                     />
                   </TabsContent>
-                  <TabsContent value="master_scenes">
-                    <FormField
-                      control={form.control}
-                      name="master_scenes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <EditableText
-                              fieldName="Possible Scenes"
-                              field={field}
-                              edit={isEditing}
-                              defaultOpen
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
+                  {gameSession?.master_scenes && (
+                    <TabsContent value="master_scenes">
+                      <FormField
+                        control={form.control}
+                        name="master_scenes"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <EditableText
+                                fieldName="Possible Scenes"
+                                field={field}
+                                edit={isEditing}
+                                defaultOpen
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </TabsContent>
+                  )}
+                  <TabsContent value="scene-list">
+                    <ContentTodoList
+                      data={scenes}
+                      setData={setScenes}
+                      isEditing={isEditing}
+                      title="Scenes"
                     />
                   </TabsContent>
-                  <TabsContent value="master_secrets">
-                    <FormField
-                      control={form.control}
-                      name="master_secrets"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <EditableText
-                              fieldName="Secrets"
-                              field={field}
-                              edit={isEditing}
-                              defaultOpen
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
+                  {gameSession?.master_secrets && (
+                    <TabsContent value="master_secrets">
+                      <FormField
+                        control={form.control}
+                        name="master_secrets"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <EditableText
+                                fieldName="Secrets"
+                                field={field}
+                                edit={isEditing}
+                                defaultOpen
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </TabsContent>
+                  )}
+                  <TabsContent value="secrets-list">
+                    <ContentTodoList
+                      data={secrets}
+                      setData={setSecrets}
+                      isEditing={isEditing}
+                      title="Possible Secrets"
                     />
                   </TabsContent>
                 </Tabs>

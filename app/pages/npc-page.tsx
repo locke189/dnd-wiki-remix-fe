@@ -24,8 +24,11 @@ import { EditableInput } from '~/components/editable-input';
 import { TPlayer, TPlayerRelationship } from '~/types/player';
 import { TSession } from '~/types/session';
 import {
+  ageOptions,
   classOptions,
+  entityCategoryOptions,
   genderOptions,
+  jobOptions,
   LAYOUT_PAGE_HEADER_PORTAL_ID,
   raceOptions,
 } from '~/models/global';
@@ -64,7 +67,7 @@ import { TParty, TPartyRelationship } from '~/types/party';
 import { PartiesList } from '~/containers/parties-list';
 import { TItem, TItemRelationship } from '~/types/item';
 import { ItemsList } from '~/containers/items-list';
-import { randomizeNPC } from '~/lib/utils';
+import { getLabelFromOptions, randomizeNPC } from '~/lib/utils';
 
 type TNpcPageProps = {
   npc?: TNpc;
@@ -145,6 +148,8 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
     race: z.string().optional(),
     age: z.string().optional(),
     gender: z.string().optional(),
+    job: z.string().optional(),
+    category: z.string().optional(),
     status: z.string().optional(),
     description: z.string().optional(),
     story: z.string().optional(),
@@ -162,6 +167,8 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
       story: npc?.story ?? '',
       description: npc?.description ?? '',
       master_notes: npc?.master_notes ?? '',
+      job: npc?.job ?? '',
+      category: npc?.category ?? '',
     },
   });
 
@@ -248,6 +255,33 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
     npc?.Items?.find((i) => i.Items_id === item.id)
   );
 
+  const genderLabel = getLabelFromOptions({
+    options: genderOptions,
+    value: npc?.gender ?? '',
+  });
+  const raceLabel = getLabelFromOptions({
+    options: raceOptions,
+    value: npc?.race ?? '',
+  });
+  const classLabel = getLabelFromOptions({
+    options: classOptions,
+    value: npc?.class ?? '',
+  });
+  const ageLabel = getLabelFromOptions({
+    options: ageOptions,
+    value: npc?.age ?? '',
+  });
+
+  const jobLabel = getLabelFromOptions({
+    options: genderOptions,
+    value: npc?.job ?? '',
+  });
+
+  const categoryLabel = getLabelFromOptions({
+    options: genderOptions,
+    value: npc?.category ?? '',
+  });
+
   return (
     // navbar
     <>
@@ -277,9 +311,11 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
                   )}
                 />
                 {!isEditing && (
-                  <p className="text-xl text-slate-500 align-middle">
-                    {`${npc?.gender} - ${npc?.race} - ${npc?.class} - ${npc?.age} `}
-                  </p>
+                  <div>
+                    <p className="text-md text-slate-500 align-middle">
+                      {`${jobLabel} - ${categoryLabel}`}
+                    </p>
+                  </div>
                 )}
               </div>
               <div className="flex gap-3">
@@ -439,6 +475,7 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
                   {!isEditing && (
                     <>
                       <div className="flex flex-col gap-4">
+                        <p className="text-lg font-bold">{`${genderLabel} ${raceLabel} - ${classLabel}`}</p>
                         <div>
                           <AvatarList<TLocation>
                             title="Locations"
@@ -501,18 +538,28 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
                             name="age"
                             render={({ field }) => (
                               <FormItem>
-                                <FormControl>
-                                  <EditableInput
-                                    fieldName="Age"
-                                    field={field}
-                                    edit={isEditing}
-                                    type="text"
-                                  >
-                                    <CardDescription>
-                                      {field?.value}
-                                    </CardDescription>
-                                  </EditableInput>
-                                </FormControl>
+                                <FormLabel>Age</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select an age..." />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {ageOptions.map((option) => (
+                                      <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                      >
+                                        {option.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               </FormItem>
                             )}
                           />
@@ -595,6 +642,66 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
                                   </FormControl>
                                   <SelectContent>
                                     {classOptions.map((option) => (
+                                      <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                      >
+                                        {option.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="job"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Job</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select a job..." />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {jobOptions.map((option) => (
+                                      <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                      >
+                                        {option.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="category"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Category</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select a category..." />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {entityCategoryOptions.map((option) => (
                                       <SelectItem
                                         key={option.value}
                                         value={option.value}

@@ -10,7 +10,8 @@ export type TNpc = {
   class: string;
   gender: string;
   status: string;
-
+  job: string;
+  category: string;
   age: string;
   id: number;
   main_image: string;

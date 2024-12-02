@@ -1,6 +1,11 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { classOptions, genderOptions, raceOptions } from '~/models/global';
+import {
+  classOptions,
+  genderOptions,
+  raceOptions,
+  TOption,
+} from '~/models/global';
 import { NpcNames } from '~/models/names';
 
 export function cn(...inputs: ClassValue[]) {
@@ -48,4 +53,15 @@ export const randomizeNPC = () => {
     class: randomClass,
     gender: randomGender,
   };
+};
+
+export const getLabelFromOptions = ({
+  options,
+  value,
+}: {
+  options: TOption[];
+  value: string;
+}) => {
+  const option = options.find((o) => o.value === value);
+  return option ? option.label : value;
 };

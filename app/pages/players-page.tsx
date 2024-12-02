@@ -24,6 +24,7 @@ import { EditableInput } from '~/components/editable-input';
 import { TPlayer } from '~/types/player';
 import { TSession } from '~/types/session';
 import {
+  ageOptions,
   classOptions,
   genderOptions,
   LAYOUT_PAGE_HEADER_PORTAL_ID,
@@ -171,6 +172,7 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     setSubmitted(true);
+    console.log('submittng', getSelectedNpcRelations(npcRowSelection));
     fetcher.submit(
       {
         data: JSON.stringify({
@@ -485,18 +487,28 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
                             name="age"
                             render={({ field }) => (
                               <FormItem>
-                                <FormControl>
-                                  <EditableInput
-                                    fieldName="Age"
-                                    field={field}
-                                    edit={isEditing}
-                                    type="text"
-                                  >
-                                    <CardDescription>
-                                      {field?.value}
-                                    </CardDescription>
-                                  </EditableInput>
-                                </FormControl>
+                                <FormLabel>Age</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select an age..." />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {ageOptions.map((option) => (
+                                      <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                      >
+                                        {option.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               </FormItem>
                             )}
                           />
