@@ -1,32 +1,56 @@
 import { Link } from '@remix-run/react';
+import { Card, CardDescription, CardHeader, CardTitle } from './ui/card';
 
 export type TImageListProps = {
   title?: string;
+  className?: string;
   data?: {
     id: string;
     imageUrl: string;
     name: string;
+    description?: string;
     url: string;
   }[];
 };
 
-export const ImageList: React.FC<TImageListProps> = ({ title, data }) => {
+export const ImageList: React.FC<TImageListProps> = ({
+  title,
+  data,
+  className,
+}) => {
   return (
-    <section className="container mx-auto">
-      <h1 className="my-8 text-2xl font-bold">{title}</h1>
-      <div className="flex gap-7">
-        {data?.map(({ id, imageUrl, name, url }) => (
-          <Link key={id} to={`${url}`}>
-            <div>
-              {imageUrl && (
+    <section className={className}>
+      {title && <h1 className="my-8 text-2xl font-bold">{title}</h1>}
+      <div className="grid grid-cols-12 gap-x-12 gap-y-4">
+        {data?.map(({ id, imageUrl, name, url, description }) => (
+          <Link
+            key={id}
+            to={`${url}`}
+            className="col-span-4 lg:col-span-3 sm:col-span-12"
+          >
+            <Card>
+              <CardHeader
+                className="rounded-xl bg-muted/50 h-[300px] flex flex-col justify-end"
+                style={{
+                  backgroundImage: `linear-gradient(to bottom, rgba(245, 246, 252, 0.01), rgba(0, 0, 0, 0.8)), url('${imageUrl}')`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                }}
+              >
+                {/* {imageUrl && (
                 <img
-                  className="object-cover h-40 x-40 radius-lg"
-                  src={imageUrl}
-                  alt={name}
+                className="object-cover h-60 w-full radius-lg object-top"
+                src={imageUrl}
+                alt={name}
                 />
-              )}
-              <h2 className="text-lg">{name}</h2>
-            </div>
+                )} */}
+                <CardTitle className="text-gray-50">{name}</CardTitle>
+                <CardDescription className="text-gray-200">
+                  {description}
+                </CardDescription>
+              </CardHeader>
+            </Card>
           </Link>
         ))}
       </div>

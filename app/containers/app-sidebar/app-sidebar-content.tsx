@@ -195,6 +195,11 @@ export const AppSidebarContent: React.FC = () => {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <Link to={`/players/`}>
+                        <i>See Full List...</i>
+                      </Link>
+                    </SidebarMenuSubItem>
                     {selectedCampaignPlayers?.map((player) => (
                       <SidebarMenuSubItem key={player.name}>
                         <Link to={`/player/${player.id}`}>{player.name}</Link>
