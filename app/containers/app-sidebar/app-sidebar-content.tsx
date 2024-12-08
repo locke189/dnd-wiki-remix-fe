@@ -79,6 +79,7 @@ export const AppSidebarContent: React.FC = () => {
       )
     )
     .sort((a, b) => (a.name > b.name ? 1 : -1));
+  // .filter((npc) => npc.favorite);
 
   const selectedCampaignParties = parties.filter((party) =>
     party.campaigns.some(
@@ -146,7 +147,7 @@ export const AppSidebarContent: React.FC = () => {
   return (
     <SidebarContent>
       <SidebarGroup>
-        <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+        <SidebarGroupLabel>Wiki</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
             <Collapsible className="group/collapsible">

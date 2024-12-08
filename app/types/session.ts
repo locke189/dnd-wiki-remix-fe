@@ -14,6 +14,7 @@ export type TSession = {
   master_notes?: string;
   secret_list?: TContentTodo[];
   scene_list?: TContentTodo[];
+  encounters?: TContentTodo[];
   campaign: number;
   players: TPlayerRelationship[];
   Npcs: TNpcRelationship[];

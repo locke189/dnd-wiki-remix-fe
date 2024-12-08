@@ -13,7 +13,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getImageUrl(imageId: string) {
-  return `${process.env.ASSET_DOMAIN}:${process.env.ASSET_PORT}/assets/${imageId}`;
+  return imageId
+    ? `${process.env.ASSET_DOMAIN}:${process.env.ASSET_PORT}/assets/${imageId}`
+    : '';
 }
 
 export const randomizeNPC = () => {
@@ -64,4 +66,17 @@ export const getLabelFromOptions = ({
 }) => {
   const option = options.find((o) => o.value === value);
   return option ? option.label : value;
+};
+
+export const debounce = (
+  callback: (arg0: unknown) => void,
+  waitTime: number | undefined
+) => {
+  let timer: string | number | NodeJS.Timeout | undefined;
+  return (...args: [unknown]) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      callback(...args);
+    }, waitTime);
+  };
 };

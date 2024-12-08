@@ -64,7 +64,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
     updateItem('sessions', id, data as object)
   );
 
-  return json({ data: gameSession });
+  return json({
+    isUserLoggedIn: true,
+    gameSession,
+  });
 }
 
 export default function Index() {

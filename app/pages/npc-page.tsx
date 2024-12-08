@@ -68,6 +68,9 @@ import { PartiesList } from '~/containers/parties-list';
 import { TItem, TItemRelationship } from '~/types/item';
 import { ItemsList } from '~/containers/items-list';
 import { getLabelFromOptions, randomizeNPC } from '~/lib/utils';
+import { getRandomBackstory } from '~/models/backstory';
+import { ToggleIcon } from '~/components/toggle-icon';
+import { useFavorite } from '~/hooks/set-favorite';
 
 type TNpcPageProps = {
   npc?: TNpc;
@@ -81,6 +84,7 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
   const [selectedImageId, setSelectedImageId] = React.useState(
     npc?.main_image.split('/').pop() ?? ''
   );
+  const { setFavorite } = useFavorite();
 
   const appContext = useContext(AppContext);
   const {
@@ -219,6 +223,7 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
     form.setValue('class', randomNpc.class);
     form.setValue('race', randomNpc.race);
     form.setValue('description', randomNpc.description);
+    form.setValue('story', getRandomBackstory());
   };
 
   useEffect(() => {
@@ -267,10 +272,10 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
     options: classOptions,
     value: npc?.class ?? '',
   });
-  const ageLabel = getLabelFromOptions({
-    options: ageOptions,
-    value: npc?.age ?? '',
-  });
+  // const ageLabel = getLabelFromOptions({
+  //   options: ageOptions,
+  //   value: npc?.age ?? '',
+  // });
 
   const jobLabel = getLabelFromOptions({
     options: genderOptions,
@@ -309,6 +314,10 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
                       </FormControl>
                     </FormItem>
                   )}
+                />
+                <ToggleIcon
+                  isToggled={npc?.favorite ?? false}
+                  onClick={() => setFavorite(!npc?.favorite)}
                 />
                 {!isEditing && (
                   <div>

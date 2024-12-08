@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { DialogPortal } from '@radix-ui/react-dialog';
 import { useFetcher } from '@remix-run/react';
 import { useContext, useEffect, useState } from 'react';
-import { Form, useForm } from 'react-hook-form';
+import { Form, get, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { ImageChooser } from '~/components/image-chooser';
 import { Button } from '~/components/ui/button';
@@ -32,6 +32,7 @@ import {
 import { Textarea } from '~/components/ui/textarea';
 import { AppContext } from '~/context/app.context';
 import { randomizeNPC } from '~/lib/utils';
+import { getRandomBackstory } from '~/models/backstory';
 import { classOptions, genderOptions, raceOptions } from '~/models/global';
 
 type TNewNpc = {
@@ -105,6 +106,7 @@ export const NewNpc: React.FC<TNewNpc> = ({ children }) => {
     form.setValue('class', randomNpc.class);
     form.setValue('race', randomNpc.race);
     form.setValue('description', randomNpc.description);
+    form.setValue('story', getRandomBackstory());
   };
 
   useEffect(() => {

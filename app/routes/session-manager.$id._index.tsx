@@ -7,11 +7,10 @@ import {
 import { redirect, useLoaderData, useParams } from '@remix-run/react';
 import { readItem, updateItem } from '@directus/sdk';
 
+import { SMSessionPage } from '~/pages/sm-session-page';
+import { TSession } from '~/types/session';
 import { authenticator } from '~/lib/authentication.server';
 import { client } from '~/lib/directus.server';
-import { getImageUrl } from '~/lib/utils';
-import { PartyPage } from '~/pages/party-page';
-import { TParty } from '~/types/party';
 
 export const meta: MetaFunction = () => {
   return [
@@ -33,18 +32,15 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     return redirect('/');
   }
 
-  const party = await client.request(
-    readItem('Parties', id, {
-      fields: ['*', 'players.*', 'npcs.*', 'locations.*'],
+  const gameSession = await client.request(
+    readItem('sessions', id, {
+      fields: ['*', 'players.*', 'Npcs.*', 'Locations.*'],
     })
   );
 
   return json({
     isUserLoggedIn: true,
-    party: {
-      ...party,
-      main_image: getImageUrl(party.main_image),
-    },
+    gameSession,
   });
 }
 
@@ -64,24 +60,24 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   const data = JSON.parse(String(body.get('data')));
 
-  console.log(data);
+  const gameSession = await client.request(
+    updateItem('sessions', id, data as object)
+  );
 
-  const party = await client.request(updateItem('Parties', id, data as object));
-
-  return json({ data: party });
+  return json({ data: gameSession });
 }
 
 export default function Index() {
   const { id } = useParams();
   const data = useLoaderData<{
     isUserLoggedIn: boolean;
-    party: TParty;
+    gameSession: TSession;
   }>();
 
-  const { party } = data || {};
+  const { gameSession } = data || {};
 
   return (
     // navbar
-    <PartyPage party={party} key={id} />
+    <SMSessionPage gameSession={gameSession} key={id} />
   );
 }

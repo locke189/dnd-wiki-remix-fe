@@ -4,13 +4,13 @@ import {
   type LoaderFunctionArgs,
   type MetaFunction,
 } from '@remix-run/node';
-import { redirect, useParams } from '@remix-run/react';
+import { redirect } from '@remix-run/react';
 import { createItem } from '@directus/sdk';
 
 import { authenticator } from '~/lib/authentication.server';
 import { client } from '~/lib/directus.server';
-import { TNpc } from '~/types/npc';
-import { NpcPage } from '~/pages/npc-page';
+import { PartyPage } from '~/pages/party-page';
+import { TParty } from '~/types/party';
 
 export const meta: MetaFunction = () => {
   return [
@@ -44,49 +44,33 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const body = await request.formData();
 
-  console.log('creating npc', body);
+  console.log('creating party', body);
 
   const data = JSON.parse(String(body.get('data')));
 
-  const newNpc = await client.request(createItem('Npc', data as object));
+  const newParty = await client.request(createItem('Parties', data as object));
 
-  return url.pathname === '/npc/new'
-    ? redirect(`/npc/${newNpc.id}`)
-    : json({ data: newNpc });
+  return url.pathname === '/party/new'
+    ? redirect(`/party/${newParty.id}`)
+    : json({ data: newParty });
 }
 
 export default function Index() {
-  const { id } = useParams();
-
-  // const appContext = useContext(AppContext);
-  // const { selectedCampaignId } = appContext;
-
-  const emptyNpc: TNpc = {
-    name: '',
+  const emptyParty: TParty = {
     id: 0,
-    Locations: [],
-    race: '',
-    class: '',
-    gender: '',
-    status: '',
-    age: '',
-    main_image: '',
+    name: '',
     description: '',
-    story: '',
-    master_notes: '',
-    Allied_Players: [],
+    main_image: '',
+    players: [],
+    npcs: [],
+    locations: [],
+    status: '',
     campaigns: [],
-    sessions: [],
-    Parties: [],
-    Items: [],
-    job: '',
-    category: '',
+    master_notes: '',
   };
 
   return (
     // navbar
-    <>
-      <NpcPage npc={emptyNpc} key={id} isNew={true} />
-    </>
+    <PartyPage party={emptyParty} isNew />
   );
 }

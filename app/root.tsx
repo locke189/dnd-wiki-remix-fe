@@ -101,6 +101,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         'main_image',
         'campaigns.campaigns_id',
         'description',
+        'favorite',
       ],
     })
   );

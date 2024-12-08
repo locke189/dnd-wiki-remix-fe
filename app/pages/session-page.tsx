@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { useFetcher } from '@remix-run/react';
+import { Link, useFetcher } from '@remix-run/react';
 
 import { Card, CardContent, CardDescription } from '~/components/ui/card';
 import { EditableText } from '~/components/editable-text';
@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem } from '~/components/ui/form';
 import { EditableInput } from '~/components/editable-input';
-import { format } from 'date-fns';
+import { format, set } from 'date-fns';
 
 import { TPlayer, TPlayerRelationship } from '~/types/player';
 import { TSession } from '~/types/session';
@@ -19,7 +19,7 @@ import { TNpc, TNpcRelationship } from '~/types/npc';
 import { NpcList } from '~/containers/npc-list';
 import { TLocation, TLocationsRelationship } from '~/types/location';
 import { AvatarList } from '~/components/avatar-list';
-import { Pen, Save, Trash } from 'lucide-react';
+import { Compass, DraftingCompass, Pen, Save, Trash } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +53,9 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
   const [isEditing, setIsEditing] = React.useState(isNew);
   const [secrets, setSecrets] = React.useState(gameSession?.secret_list || []);
   const [scenes, setScenes] = React.useState(gameSession?.scene_list || []);
+  const [encounters, setEncounters] = React.useState(
+    gameSession?.encounters || []
+  );
 
   const fetcher = useFetcher();
   // const isLoading = fetcher.state === 'loading';
@@ -146,6 +149,7 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
           campaign: gameSession?.campaign,
           secret_list: secrets,
           scene_list: scenes,
+          encounters: encounters,
         }),
       },
       {
@@ -224,6 +228,13 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                 </p>
               </div>
               <div className="flex gap-3">
+                <Link to={`/session-manager/${gameSession?.id}`}>
+                  <Button type="button" variant="outline">
+                    <DraftingCompass />
+                    Session Manager
+                  </Button>
+                </Link>
+
                 {!isNew && (
                   <AlertDialog>
                     <AlertDialogTrigger>
@@ -300,6 +311,7 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                       </TabsTrigger>
                     )}
                     <TabsTrigger value="secrets-list">Secrets</TabsTrigger>
+                    <TabsTrigger value="encounters">Encounters</TabsTrigger>
                   </TabsList>
                   <TabsContent value="master_notes">
                     <FormField
@@ -409,6 +421,15 @@ export const SessionPage: React.FC<TSessionPageProps> = ({
                       setData={setSecrets}
                       isEditing={isEditing}
                       title="Possible Secrets"
+                    />
+                  </TabsContent>
+                  <TabsContent value="encounters">
+                    <ContentTodoList
+                      data={encounters}
+                      setData={setEncounters}
+                      isEditing={isEditing}
+                      title="Encounters"
+                      showUrl
                     />
                   </TabsContent>
                 </Tabs>

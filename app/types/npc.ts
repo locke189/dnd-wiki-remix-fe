@@ -26,6 +26,7 @@ export type TNpc = {
   sessions: TSessionRelationship[];
   Parties: TPartyRelationship[];
   Items: TItemRelationship[];
+  favorite: boolean;
 };
 
 export type TNpcRelationship = {

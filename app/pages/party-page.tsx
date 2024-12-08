@@ -49,8 +49,10 @@ export const PartyPage: React.FC<TPartyPageProps> = ({
   const [submitted, setSubmitted] = React.useState(false);
   const [isEditing, setIsEditing] = React.useState(isNew);
   const [selectedImageId, setSelectedImageId] = React.useState(
-    party?.main_image.split('/').pop() ?? ''
+    party?.main_image ? party?.main_image.split('/').pop() : ''
   );
+
+  console.log(party);
 
   const fetcher = useFetcher();
   // const isLoading = fetcher.state === 'loading';
@@ -131,8 +133,8 @@ export const PartyPage: React.FC<TPartyPageProps> = ({
           players: getSelectedPlayerRelations(playerRowSelection),
           npcs: getSelectedNpcRelations(npcRowSelection),
           locations: getSelectedLocationRelations(locationRowSelection),
-          campaign: selectedCampaignId,
-          main_image: selectedImageId,
+          campaigns: [{ campaigns_id: selectedCampaignId }],
+          ...(selectedImageId && { main_image: selectedImageId }),
         }),
       },
       {
