@@ -34,6 +34,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const items = await client.request(
     readItems('Items', {
       fields: ['*', 'campaigns.*'],
+      limit: -1,
     })
   );
 
@@ -65,7 +66,9 @@ export default function Index() {
         );
 
         return (
-          inCampaign && item.name.toLowerCase().includes(search.toLowerCase())
+          inCampaign &&
+          item.name.toLowerCase().includes(search.toLowerCase()) &&
+          item.key_item
         );
       })
       .sort((a, b) => a.name.localeCompare(b.name)) || [];

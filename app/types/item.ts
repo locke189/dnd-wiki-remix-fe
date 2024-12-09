@@ -43,6 +43,7 @@ export type TItem = {
   Players: TPlayerRelationship[];
   campaigns: TCampaignRelationships[];
   favorite: boolean;
+  key_item: boolean;
 };
 
 export type TItemRelationship = {

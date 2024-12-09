@@ -107,7 +107,7 @@ export const AppSidebarContent: React.FC = () => {
         (campaign) => campaign.campaigns_id === context?.selectedCampaignId
       )
     )
-    .filter((item) => item.favorite)
+    .filter((item) => item.favorite && item.key_item)
     .sort((a, b) => a.name.localeCompare(b.name));
 
   const getLocationsDom: (parent: null | number) => ReactNode = (

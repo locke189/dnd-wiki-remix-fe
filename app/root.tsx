@@ -157,7 +157,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
         'price',
         'is_service',
         'favorite',
+        'key_item',
+        'campaigns.campaigns_id',
       ],
+      limit: -1,
     })
   );
 
@@ -173,6 +176,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         'main_image',
         'favorite',
       ],
+      limit: -1,
     })
   );
 
