@@ -6,7 +6,6 @@ import {
 import { useLoaderData } from '@remix-run/react';
 import { readItems } from '@directus/sdk';
 import { ImageList } from '~/components/image-list';
-import { TPlayer } from '~/types/player';
 import { authenticator } from '~/lib/authentication.server';
 import { client } from '~/lib/directus.server';
 import { Portal } from '~/components/portal';
@@ -16,6 +15,7 @@ import { useContext, useState } from 'react';
 import { AppContext } from '~/context/app.context';
 import { ToggleIcon } from '~/components/toggle-icon';
 import { useFavorite } from '~/hooks/set-favorite';
+import { TItem } from '~/types/item';
 
 export const meta: MetaFunction = () => {
   return [
@@ -31,43 +31,41 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   client.setToken(user?.token);
 
-  const players = await client.request(
-    readItems('Player', {
+  const items = await client.request(
+    readItems('Items', {
       fields: ['*', 'campaigns.*'],
     })
   );
 
-  const playersWithImages = players.map((player) => {
+  const itemsWithImages = items.map((item) => {
     return {
-      ...player,
-      main_image: `${process.env.DB_DOMAIN}:${process.env.DB_PORT}/assets/${player.main_image}`,
+      ...item,
+      main_image: `${process.env.DB_DOMAIN}:${process.env.DB_PORT}/assets/${item.main_image}`,
     };
   });
 
-  return json({ isUserLoggedIn: true, players: playersWithImages });
+  return json({ isUserLoggedIn: true, items: itemsWithImages });
 }
 
 export default function Index() {
   const data = useLoaderData<{
     isUserLoggedIn: boolean;
-    players: TPlayer[];
+    items: TItem[];
   } | null>();
 
   const [search, setSearch] = useState('');
-
   const { setFavorite } = useFavorite();
-
   const appContext = useContext(AppContext);
 
-  const players =
-    data?.players
-      ?.filter((player) => {
-        const inCampaign = player.campaigns?.some(
+  const items =
+    data?.items
+      ?.filter((item) => {
+        const inCampaign = item.campaigns?.some(
           (campaign) => campaign.campaigns_id === appContext?.selectedCampaignId
         );
 
         return (
-          inCampaign && player.name.toLowerCase().includes(search.toLowerCase())
+          inCampaign && item.name.toLowerCase().includes(search.toLowerCase())
         );
       })
       .sort((a, b) => a.name.localeCompare(b.name)) || [];
@@ -77,7 +75,7 @@ export default function Index() {
     <div className="grid auto-rows-min gap-4 lg:grid-cols-12 grid-cols-8 mx-8 space-y-10 mt-8">
       <Portal portalId={LAYOUT_PAGE_HEADER_PORTAL_ID}>
         <header className="flex justify-between items-center w-full">
-          <h1 className="text-2xl font-bold">Players</h1>
+          <h1 className="text-2xl font-bold">Items</h1>
         </header>
       </Portal>
       <div className="col-span-3">
@@ -89,20 +87,20 @@ export default function Index() {
       </div>
       <ImageList
         className="col-span-12"
-        data={players.map((player) => ({
-          id: player.id,
-          imageUrl: player.main_image,
-          name: player.name,
-          url: `/player/${player.id}`,
+        data={items.map((item) => ({
+          id: item.id,
+          imageUrl: item.main_image,
+          name: item.name,
+          url: `/item/${item.id}`,
           action: (
             <>
               <ToggleIcon
-                isToggled={player.favorite}
+                isToggled={item.favorite}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   e.nativeEvent.stopImmediatePropagation();
-                  setFavorite(!player.favorite, `/player/${player.id}`);
+                  setFavorite(!item.favorite, `/item/${item.id}`);
                 }}
               />
             </>

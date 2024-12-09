@@ -31,6 +31,7 @@ export type TPlayer = {
   Parties: TPartyRelationship[];
   Spells: [];
   items: TItemRelationship[];
+  favorite: boolean;
 };
 
 export type TPlayerRelationship = {

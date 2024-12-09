@@ -6,7 +6,6 @@ import {
 import { useLoaderData } from '@remix-run/react';
 import { readItems } from '@directus/sdk';
 import { ImageList } from '~/components/image-list';
-import { TPlayer } from '~/types/player';
 import { authenticator } from '~/lib/authentication.server';
 import { client } from '~/lib/directus.server';
 import { Portal } from '~/components/portal';
@@ -16,6 +15,8 @@ import { useContext, useState } from 'react';
 import { AppContext } from '~/context/app.context';
 import { ToggleIcon } from '~/components/toggle-icon';
 import { useFavorite } from '~/hooks/set-favorite';
+import { TLocation } from '~/types/location';
+import { TParty } from '~/types/party';
 
 export const meta: MetaFunction = () => {
   return [
@@ -31,36 +32,34 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   client.setToken(user?.token);
 
-  const players = await client.request(
-    readItems('Player', {
+  const parties = await client.request(
+    readItems('Parties', {
       fields: ['*', 'campaigns.*'],
     })
   );
 
-  const playersWithImages = players.map((player) => {
+  const partiesWithImages = parties.map((party) => {
     return {
-      ...player,
-      main_image: `${process.env.DB_DOMAIN}:${process.env.DB_PORT}/assets/${player.main_image}`,
+      ...party,
+      main_image: `${process.env.DB_DOMAIN}:${process.env.DB_PORT}/assets/${party.main_image}`,
     };
   });
 
-  return json({ isUserLoggedIn: true, players: playersWithImages });
+  return json({ isUserLoggedIn: true, parties: partiesWithImages });
 }
 
 export default function Index() {
   const data = useLoaderData<{
     isUserLoggedIn: boolean;
-    players: TPlayer[];
+    parties: TParty[];
   } | null>();
 
   const [search, setSearch] = useState('');
-
   const { setFavorite } = useFavorite();
-
   const appContext = useContext(AppContext);
 
-  const players =
-    data?.players
+  const parties =
+    data?.parties
       ?.filter((player) => {
         const inCampaign = player.campaigns?.some(
           (campaign) => campaign.campaigns_id === appContext?.selectedCampaignId
@@ -77,7 +76,7 @@ export default function Index() {
     <div className="grid auto-rows-min gap-4 lg:grid-cols-12 grid-cols-8 mx-8 space-y-10 mt-8">
       <Portal portalId={LAYOUT_PAGE_HEADER_PORTAL_ID}>
         <header className="flex justify-between items-center w-full">
-          <h1 className="text-2xl font-bold">Players</h1>
+          <h1 className="text-2xl font-bold">Parties/Factions</h1>
         </header>
       </Portal>
       <div className="col-span-3">
@@ -89,20 +88,20 @@ export default function Index() {
       </div>
       <ImageList
         className="col-span-12"
-        data={players.map((player) => ({
-          id: player.id,
-          imageUrl: player.main_image,
-          name: player.name,
-          url: `/player/${player.id}`,
+        data={parties.map((party) => ({
+          id: party.id,
+          imageUrl: party.main_image,
+          name: party.name,
+          url: `/party/${party.id}`,
           action: (
             <>
               <ToggleIcon
-                isToggled={player.favorite}
+                isToggled={party.favorite}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   e.nativeEvent.stopImmediatePropagation();
-                  setFavorite(!player.favorite, `/player/${player.id}`);
+                  setFavorite(!party.favorite, `/party/${party.id}`);
                 }}
               />
             </>

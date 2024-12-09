@@ -21,9 +21,16 @@ import {
 import { ColumnDef, flexRender, useReactTable } from '@tanstack/react-table';
 
 import { Input } from '~/components/ui/input';
+import { debounce } from '~/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 export type TListTemplate<T> = {
-  rowSelection: Record<string, boolean>;
+  rowSelection?: Record<string, boolean>;
   buttonLabel?: string;
   table: ReturnType<typeof useReactTable<T>>;
   columns: ColumnDef<T>[];
@@ -32,6 +39,9 @@ export type TListTemplate<T> = {
   title?: string;
   description?: string;
   selectionLabel?: string;
+  onlyTable?: boolean;
+  noPagination?: boolean;
+  showVisibility?: boolean;
 };
 
 export function ListTemplate<T extends { name: string }>({
@@ -44,8 +54,124 @@ export function ListTemplate<T extends { name: string }>({
   title,
   description,
   selectionLabel,
+  onlyTable,
+  noPagination,
+  showVisibility,
 }: TListTemplate<T>) {
-  return (
+  const onChange = (e) => table.setGlobalFilter(String(e.target.value));
+  const debouncedOnChange = debounce(onChange, 300);
+
+  console.log(table.getHeaderGroups());
+
+  const ListTable = (
+    <div className="rounded-md border">
+      <div className="flex items-center justify-between p-4">
+        <Input
+          placeholder="Find..."
+          value={table.globalFilter}
+          onChange={debouncedOnChange}
+          className="max-w-sm"
+        />
+        <div className="flex gap-4">
+          {newDataComponent && newDataComponent}
+          {showVisibility && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      </div>
+      <Table className="relative">
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                return (
+                  <TableHead key={header.id} className="">
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && 'selected'}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+      {!noPagination && (
+        <div className="flex items-center justify-end space-x-2 py-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
+  return onlyTable ? (
+    ListTable
+  ) : (
     <div>
       <Dialog onOpenChange={() => table.setGlobalFilter('')}>
         <DialogTrigger asChild>
@@ -58,83 +184,7 @@ export function ListTemplate<T extends { name: string }>({
               <DialogDescription>{description}</DialogDescription>
             )}
           </DialogHeader>
-          <div className="rounded-md border">
-            <div className="flex items-center justify-between p-4">
-              <Input
-                placeholder="Filter..."
-                value={table.globalFilter}
-                onChange={(e) => table.setGlobalFilter(String(e.target.value))}
-                className="max-w-sm"
-              />
-              {newDataComponent && newDataComponent}
-            </div>
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && 'selected'}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      No results.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-            <div className="flex items-center justify-end space-x-2 py-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
+          {ListTable}
           <DialogFooter className="sm:justify-start">
             <DialogClose asChild>
               <Button type="button" variant="secondary">
@@ -146,7 +196,7 @@ export function ListTemplate<T extends { name: string }>({
       </Dialog>
       <p className="mt-3">
         {`${selectionLabel ? selectionLabel : 'Selected'}`}:{' '}
-        {Object.keys(rowSelection)
+        {Object.keys(rowSelection ?? {})
           .map((index) => data?.[Number(index)]?.name ?? '')
           .join(', ')}
       </p>

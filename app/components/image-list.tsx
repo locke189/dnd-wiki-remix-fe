@@ -1,15 +1,17 @@
 import { Link } from '@remix-run/react';
 import { Card, CardDescription, CardHeader, CardTitle } from './ui/card';
+import React from 'react';
 
 export type TImageListProps = {
   title?: string;
   className?: string;
   data?: {
-    id: string;
+    id: number;
     imageUrl: string;
     name: string;
     description?: string;
     url: string;
+    action: React.ReactNode;
   }[];
 };
 
@@ -22,7 +24,7 @@ export const ImageList: React.FC<TImageListProps> = ({
     <section className={className}>
       {title && <h1 className="my-8 text-2xl font-bold">{title}</h1>}
       <div className="grid grid-cols-12 gap-x-12 gap-y-4">
-        {data?.map(({ id, imageUrl, name, url, description }) => (
+        {data?.map(({ id, imageUrl, name, url, description, action }) => (
           <Link
             key={id}
             to={`${url}`}
@@ -45,7 +47,10 @@ export const ImageList: React.FC<TImageListProps> = ({
                 alt={name}
                 />
                 )} */}
-                <CardTitle className="text-gray-50">{name}</CardTitle>
+                <div className="flex justify-between">
+                  <CardTitle className="text-gray-50">{name}</CardTitle>
+                  {action && action}
+                </div>
                 <CardDescription className="text-gray-200">
                   {description}
                 </CardDescription>

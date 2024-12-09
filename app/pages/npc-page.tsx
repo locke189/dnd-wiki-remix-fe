@@ -315,10 +315,12 @@ export const NpcPage: React.FC<TNpcPageProps> = ({ npc, isNew = false }) => {
                     </FormItem>
                   )}
                 />
-                <ToggleIcon
-                  isToggled={npc?.favorite ?? false}
-                  onClick={() => setFavorite(!npc?.favorite)}
-                />
+                {!isNew && (
+                  <ToggleIcon
+                    isToggled={npc?.favorite ?? false}
+                    onClick={() => setFavorite(!npc?.favorite)}
+                  />
+                )}
                 {!isEditing && (
                   <div>
                     <p className="text-md text-slate-500 align-middle">

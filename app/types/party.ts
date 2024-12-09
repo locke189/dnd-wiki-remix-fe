@@ -15,6 +15,7 @@ export type TParty = {
   npcs: TNpcRelationship[];
   players: TPlayerRelationship[];
   master_notes: string;
+  favorite: boolean;
 };
 
 export type TPartyRelationship = {

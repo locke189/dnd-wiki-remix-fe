@@ -5,7 +5,7 @@ export const useFavorite = () => {
   const fetcher = useFetcher();
   const [submitted, setSubmitted] = useState(false);
 
-  const setFavorite = (isFavorite: boolean) => {
+  const setFavorite = (isFavorite: boolean, action?: string) => {
     if (submitted) return;
     setSubmitted(true);
 
@@ -17,6 +17,7 @@ export const useFavorite = () => {
       },
       {
         method: 'POST',
+        ...(action ? { action: action } : {}),
       }
     );
   };

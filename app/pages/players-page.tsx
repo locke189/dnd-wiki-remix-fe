@@ -65,6 +65,8 @@ import { TParty, TPartyRelationship } from '~/types/party';
 import { PartiesList } from '~/containers/parties-list';
 import { TItem, TItemRelationship } from '~/types/item';
 import { ItemsList } from '~/containers/items-list';
+import { ToggleIcon } from '~/components/toggle-icon';
+import { useFavorite } from '~/hooks/set-favorite';
 
 type TPlayerPageProps = {
   player?: TPlayer;
@@ -93,6 +95,7 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
   } = appContext || {};
 
   const fetcher = useFetcher();
+  const { setFavorite } = useFavorite();
   const {
     rowSelection: npcRowSelection,
     getSelectedRelations: getSelectedNpcRelations,
@@ -259,6 +262,12 @@ export const PlayerPage: React.FC<TPlayerPageProps> = ({
                     </FormItem>
                   )}
                 />
+                {!isNew && (
+                  <ToggleIcon
+                    isToggled={player?.favorite ?? false}
+                    onClick={() => setFavorite(!player?.favorite)}
+                  />
+                )}
                 {!isEditing && (
                   <p className="text-xl text-slate-500 align-middle">
                     {`${player?.gender} - ${player?.race} - ${player?.class} - ${player?.age} `}

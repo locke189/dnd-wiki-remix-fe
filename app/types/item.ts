@@ -18,6 +18,7 @@
 // }
 
 import { TBastionRelationship } from './bastion';
+import { TCampaign, TCampaignRelationships } from './campaigns';
 import { TLocationsRelationship } from './location';
 import { TNpcRelationship } from './npc';
 import { TPlayerRelationship } from './player';
@@ -40,6 +41,8 @@ export type TItem = {
   bastion: TBastionRelationship[];
   Npcs: TNpcRelationship[];
   Players: TPlayerRelationship[];
+  campaigns: TCampaignRelationships[];
+  favorite: boolean;
 };
 
 export type TItemRelationship = {

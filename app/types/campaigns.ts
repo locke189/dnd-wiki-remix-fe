@@ -9,6 +9,7 @@ export type TCampaign = {
   quests: string[];
   sessions: string[];
   status: string;
+  Items: string[];
 };
 
 export type TCampaignRelationships = {

@@ -80,6 +80,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         'class',
         'race',
         'url',
+        'favorite',
         '*',
       ],
     })
@@ -119,6 +120,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         'sessions.sessions_id',
         'main_image',
         'description',
+        'favorite',
       ],
     })
   );
@@ -154,6 +156,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         'type',
         'price',
         'is_service',
+        'favorite',
       ],
     })
   );
@@ -168,6 +171,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         'Rooms',
         'player.*',
         'main_image',
+        'favorite',
       ],
     })
   );
@@ -181,6 +185,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         'campaigns.campaigns_id',
         'main_image',
         'description',
+        'favorite',
       ],
     })
   );

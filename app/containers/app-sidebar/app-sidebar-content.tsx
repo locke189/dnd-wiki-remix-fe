@@ -1,12 +1,14 @@
 import { Link, useLoaderData } from '@remix-run/react';
 import {
   Bot,
+  Castle,
   ChevronDown,
   DraftingCompass,
   Gamepad2,
+  Handshake,
+  Key,
   Map,
   Plus,
-  ScrollText,
   ShoppingBasket,
   User2,
 } from 'lucide-react';
@@ -30,9 +32,12 @@ import {
 } from '~/components/ui/sidebar';
 import { AppContext } from '~/context/app.context';
 import { mapLocationTypeToIcon } from '~/lib/locations';
+import { TBastion } from '~/types/bastion';
+import { TItem } from '~/types/item';
 import { TLocation } from '~/types/location';
 import { TNpc } from '~/types/npc';
 import { TParty } from '~/types/party';
+import { TPlayer } from '~/types/player';
 
 export type TSession = {
   id: number;
@@ -41,22 +46,18 @@ export type TSession = {
   campaign: number;
 };
 
-export type TPlayer = {
-  id: number;
-  name: string;
-  campaigns: { campaigns_id: number }[];
-};
-
 export type TAppSidebarContentProps = {
   sessions: TSession[];
   players: TPlayer[];
   npcs: TNpc[];
   locations: TLocation[];
   parties: TParty[];
+  bastions: TBastion[];
+  items: TItem[];
 };
 
 export const AppSidebarContent: React.FC = () => {
-  const { sessions, players, npcs, locations, parties } =
+  const { sessions, players, npcs, locations, parties, bastions, items } =
     useLoaderData<TAppSidebarContentProps>();
   const context = useContext(AppContext);
 
@@ -66,26 +67,48 @@ export const AppSidebarContent: React.FC = () => {
 
   const selectedCampaignPlayers = players
     .filter((player) =>
-      player.campaigns.some(
+      player.campaigns?.some(
         (campaign) => campaign.campaigns_id === context?.selectedCampaignId
       )
     )
-    .sort((a, b) => (a.name > b.name ? 1 : -1));
+    .sort((a, b) => (a.name > b.name ? 1 : -1))
+    .filter((player) => player.favorite);
 
   const selectedCampaignNPCs = npcs
     .filter((npc) =>
-      npc.campaigns.some(
+      npc.campaigns?.some(
         (campaign) => campaign.campaigns_id === context?.selectedCampaignId
       )
     )
-    .sort((a, b) => (a.name > b.name ? 1 : -1));
-  // .filter((npc) => npc.favorite);
+    .sort((a, b) => (a.name > b.name ? 1 : -1))
+    .filter((npc) => npc.favorite);
 
-  const selectedCampaignParties = parties.filter((party) =>
-    party.campaigns.some(
-      (campaign) => campaign.campaigns_id === context?.selectedCampaignId
+  const selectedCampaignParties = parties
+    .filter((party) =>
+      party.campaigns?.some(
+        (campaign) => campaign.campaigns_id === context?.selectedCampaignId
+      )
     )
-  );
+    .filter((party) => party.favorite)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const selectedCampaignBastions = bastions
+    .filter((bastion) =>
+      bastion.campaigns?.some(
+        (campaign) => campaign.campaigns_id === context?.selectedCampaignId
+      )
+    )
+    .filter((bastion) => bastion.favorite)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const selectedCampaignItems = items
+    .filter((item) =>
+      item?.campaigns?.some(
+        (campaign) => campaign.campaigns_id === context?.selectedCampaignId
+      )
+    )
+    .filter((item) => item.favorite)
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const getLocationsDom: (parent: null | number) => ReactNode = (
     parent = null
@@ -94,7 +117,7 @@ export const AppSidebarContent: React.FC = () => {
       .filter(
         (location) =>
           location.parent_location === parent &&
-          location.campaigns.some(
+          location.campaigns?.some(
             (campaign) => campaign.campaigns_id === context?.selectedCampaignId
           )
       )
@@ -228,6 +251,11 @@ export const AppSidebarContent: React.FC = () => {
                 </SidebarMenuAction>
                 <CollapsibleContent>
                   <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <Link to={`/npcs/`}>
+                        <i>See Full List...</i>
+                      </Link>
+                    </SidebarMenuSubItem>
                     {selectedCampaignNPCs?.map((npc) => (
                       <SidebarMenuSubItem key={npc.name}>
                         <Link to={`/npc/${npc.id}`}>{npc.name}</Link>
@@ -255,7 +283,14 @@ export const AppSidebarContent: React.FC = () => {
                   </Link>
                 </SidebarMenuAction>
                 <CollapsibleContent>
-                  <SidebarMenuSub className="pr-0 mr-0">{dom}</SidebarMenuSub>
+                  <SidebarMenuSub className="pr-0 mr-0">
+                    <SidebarMenuSubItem>
+                      <Link to={`/locations/`}>
+                        <i>See Full List...</i>
+                      </Link>
+                    </SidebarMenuSubItem>
+                    {dom}
+                  </SidebarMenuSub>
                 </CollapsibleContent>
               </SidebarMenuItem>
             </Collapsible>
@@ -266,7 +301,7 @@ export const AppSidebarContent: React.FC = () => {
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton asChild>
                     <div>
-                      <ScrollText />
+                      <Handshake />
                       <span>Parties/Factions</span>
                     </div>
                   </SidebarMenuButton>
@@ -278,9 +313,80 @@ export const AppSidebarContent: React.FC = () => {
                 </SidebarMenuAction>
                 <CollapsibleContent>
                   <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <Link to={`/parties/`}>
+                        <i>See Full List...</i>
+                      </Link>
+                    </SidebarMenuSubItem>
                     {selectedCampaignParties?.map((party) => (
                       <SidebarMenuSubItem key={party.name}>
                         <Link to={`/party/${party.id}`}>{party.name}</Link>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </SidebarMenuItem>
+            </Collapsible>
+          </SidebarMenu>
+          <SidebarMenu>
+            <Collapsible className="group/collapsible">
+              <SidebarMenuItem>
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton asChild>
+                    <div>
+                      <Castle />
+                      <span>Bastions</span>
+                    </div>
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <SidebarMenuAction asChild>
+                  <Link to="/bastion/new">
+                    <Plus /> <span className="sr-only">New Bastion</span>
+                  </Link>
+                </SidebarMenuAction>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <Link to={`/bastions/`}>
+                        <i>See Full List...</i>
+                      </Link>
+                    </SidebarMenuSubItem>
+                    {selectedCampaignBastions?.map((npc) => (
+                      <SidebarMenuSubItem key={npc.name}>
+                        <Link to={`/bastion/${npc.id}`}>{npc.name}</Link>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </SidebarMenuItem>
+            </Collapsible>
+          </SidebarMenu>
+          <SidebarMenu>
+            <Collapsible className="group/collapsible">
+              <SidebarMenuItem>
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton asChild>
+                    <div>
+                      <Key />
+                      <span>Items</span>
+                    </div>
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <SidebarMenuAction asChild>
+                  <Link to="/items/new">
+                    <Plus /> <span className="sr-only">New Item</span>
+                  </Link>
+                </SidebarMenuAction>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <Link to={`/items/`}>
+                        <i>See Full List...</i>
+                      </Link>
+                    </SidebarMenuSubItem>
+                    {selectedCampaignItems?.map((item) => (
+                      <SidebarMenuSubItem key={item.name}>
+                        <Link to={`/item/${item.id}`}>{item.name}</Link>
                       </SidebarMenuSubItem>
                     ))}
                   </SidebarMenuSub>
@@ -309,11 +415,11 @@ export const AppSidebarContent: React.FC = () => {
                 </SidebarMenuAction> */}
             </SidebarMenuItem>
             <SidebarMenuItem className="pr-0 mr-0">
-              <Link to={`/items/`}>
+              <Link to={`/items-manager/`}>
                 <SidebarMenuButton asChild>
                   <div>
                     <ShoppingBasket />
-                    <span>Item Browser</span>
+                    <span>Items Manager</span>
                   </div>
                 </SidebarMenuButton>
               </Link>

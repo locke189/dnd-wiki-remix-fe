@@ -50,6 +50,7 @@ export type TLocation = {
   sub_locations: TLocation[];
   Parties: TPartyRelationship[];
   items: TItemRelationship[];
+  favorite: boolean;
 };
 
 export type TLocationsRelationship = {

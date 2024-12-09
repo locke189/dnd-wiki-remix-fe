@@ -36,6 +36,7 @@ export type TBastion = {
   campaigns: { campaigns_id: number }[];
   main_image: string;
   items: { Items_id: number }[];
+  favorite: boolean;
 };
 
 export type TBastionRelationship = {

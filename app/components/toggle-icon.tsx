@@ -2,7 +2,7 @@ import { icons } from 'lucide-react';
 
 export type TToggleIconProps = {
   isToggled: boolean;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
   icon?: string;
 };
 
