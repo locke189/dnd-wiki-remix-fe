@@ -102,7 +102,7 @@ export default function Index() {
         }))}
       /> */}
       <div className="col-span-12">
-        <ItemsList items={items} noPagination />
+        <ItemsList items={items} noPagination onlyTable />
       </div>
     </div>
   );

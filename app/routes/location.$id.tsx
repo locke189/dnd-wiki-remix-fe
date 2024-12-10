@@ -74,6 +74,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     location: {
       ...location,
       main_image: getImageUrl(location.main_image),
+      map_image: getImageUrl(location.map_image),
+      dm_map_image: getImageUrl(location.dm_map_image),
       sub_locations: location.sub_locations.map((l: TLocation) => ({
         ...l,
         main_image: getImageUrl(l.main_image),

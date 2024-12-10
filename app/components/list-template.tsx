@@ -177,7 +177,7 @@ export function ListTemplate<T extends { name: string }>({
         <DialogTrigger asChild>
           <Button variant="outline">{buttonLabel ?? 'Choose'}</Button>
         </DialogTrigger>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="min-w-fit">
           <DialogHeader>
             <DialogTitle>{title ?? 'Choose NPCs'}</DialogTitle>
             {description && (

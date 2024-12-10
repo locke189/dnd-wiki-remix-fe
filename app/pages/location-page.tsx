@@ -71,6 +71,7 @@ import { TParty, TPartyRelationship } from '~/types/party';
 import { PartiesList } from '~/containers/parties-list';
 import { TItem, TItemRelationship } from '~/types/item';
 import { ItemsList } from '~/containers/items-list';
+import { ContentTodoList, TContentTodo } from '~/containers/content-todo-list';
 
 type TLocationPageProps = {
   location?: TLocation;
@@ -86,6 +87,16 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
   const [isEditing, setIsEditing] = React.useState(isNew);
   const [selectedImageId, setSelectedImageId] = React.useState<string | null>(
     location?.main_image.split('/').pop() ?? null
+  );
+  const [selectedMapImageId, setSelectedMapImageId] = React.useState<
+    string | null
+  >(location?.map_image.split('/').pop() ?? null);
+  const [selectedDMMapImageId, setSelectedDMMapImageId] = React.useState<
+    string | null
+  >(location?.dm_map_image.split('/').pop() ?? null);
+
+  const [rooms, setRooms] = React.useState<TContentTodo[]>(
+    location?.rooms ?? []
   );
 
   const appContext = useContext(AppContext);
@@ -154,12 +165,7 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
     name: z.string().optional(),
     type: z.string().optional(),
     parent_location: z.number().optional(),
-    // race: z.string().optional(),
-    // age: z.string().optional(),
-    // gender: z.string().optional(),
-    // status: z.string().optional(),
     description: z.string().optional(),
-    // story: z.string().optional(),
     master_notes: z.string().optional(),
   });
 
@@ -169,11 +175,6 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
       name: location?.name ?? '',
       type: location?.type ?? '',
       parent_location: location?.parent_location ?? -1,
-      // class: location?.class ?? '',
-      // race: location?.race ?? '',
-      // age: location?.age ?? '0',
-      // gender: location?.gender ?? '',
-      // story: location?.story ?? '',
       description: location?.description ?? '',
       master_notes: location?.master_notes ?? '',
     },
@@ -190,10 +191,15 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
           ...(selectedImageId && {
             main_image: selectedImageId,
           }),
+          ...(selectedMapImageId && {
+            map_image: selectedMapImageId,
+          }),
+          ...(selectedDMMapImageId && {
+            dm_map_image: selectedDMMapImageId,
+          }),
+          rooms: rooms,
           parent_location:
             values.parent_location === 0 ? null : values.parent_location,
-          // Allied_Players: getSelectedPlayerRelations(playersRowSelection),
-          // Locations: getSelectedLocationRelations(locationRowSelection),
           Parties: getSelectedPartiesRelations(partiesRowSelection),
           items: getSelectedItemsRelations(itemsRowSelection),
           ...(isNew && {
@@ -351,6 +357,15 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
                   <TabsList>
                     <TabsTrigger value="description">Description</TabsTrigger>
                     <TabsTrigger value="master_notes">Notes</TabsTrigger>
+                    {location?.type === 'inn_tavern_shop' && (
+                      <TabsTrigger value="items">Items</TabsTrigger>
+                    )}
+                    {location?.type === 'dungeon_cave' && (
+                      <TabsTrigger value="map">Map</TabsTrigger>
+                    )}
+                    {location?.type === 'dungeon_cave' && (
+                      <TabsTrigger value="dm-map">DM Map</TabsTrigger>
+                    )}
                   </TabsList>
                   <TabsContent value="description">
                     <FormField
@@ -388,6 +403,62 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
                       )}
                     />
                   </TabsContent>
+                  {location?.type === 'inn_tavern_shop' && (
+                    <TabsContent value="items">
+                      <ItemsList
+                        items={items}
+                        buttonLabel="Choose Items"
+                        onlyTable
+                        noPagination
+                      />
+                    </TabsContent>
+                  )}
+                  {location?.type === 'dungeon_cave' && (
+                    <TabsContent value="map">
+                      <div className="h-96 bg-muted/50 rounded-xl">
+                        {!isEditing && location.map_image && (
+                          <img
+                            src={location.map_image}
+                            alt="Map"
+                            className="w-full h-full object-cover rounded-xl"
+                          />
+                        )}
+                        {isEditing && (
+                          <ImageChooser
+                            images={images ?? []}
+                            selectedImageId={selectedMapImageId}
+                            setSelectedImageId={setSelectedMapImageId}
+                          />
+                        )}
+                      </div>
+                    </TabsContent>
+                  )}
+                  {location?.type === 'dungeon_cave' && (
+                    <TabsContent value="dm-map">
+                      <div className="h-96 bg-muted/50 rounded-xl">
+                        {!isEditing && location.dm_map_image && (
+                          <img
+                            src={location.dm_map_image}
+                            alt="Map"
+                            className="w-full h-full object-cover rounded-xl"
+                          />
+                        )}
+                        {isEditing && (
+                          <ImageChooser
+                            images={images ?? []}
+                            selectedImageId={selectedDMMapImageId}
+                            setSelectedImageId={setSelectedDMMapImageId}
+                          />
+                        )}
+                      </div>
+                      <ContentTodoList
+                        data={rooms}
+                        setData={setRooms}
+                        title="Rooms"
+                        isEditing={isEditing}
+                      />
+                    </TabsContent>
+                  )}
                 </Tabs>
               </div>
             </div>
@@ -443,22 +514,26 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
                             routePrefix="/item/"
                           />
                         </div>
-                        <div className="flex flex-col gap-2">
-                          <h2 className="text-lg font-bold">Sessions</h2>
-                          <ScrollArea className="h-32 w-full rounded-md border">
-                            <div className="p-4" key={1}>
-                              {locationSessions?.map((session?: TSession) => (
-                                <Link
-                                  to={'/session/' + session?.id}
-                                  key={session?.id}
-                                >
-                                  <div className="text-sm">{session?.name}</div>
-                                  <Separator className="my-2" />
-                                </Link>
-                              ))}
-                            </div>
-                          </ScrollArea>
-                        </div>
+                        {(locationSessions ?? []).length > 0 && (
+                          <div className="flex flex-col gap-2">
+                            <h2 className="text-lg font-bold">Sessions</h2>
+                            <ScrollArea className="h-32 w-full rounded-md border">
+                              <div className="p-4" key={1}>
+                                {locationSessions?.map((session?: TSession) => (
+                                  <Link
+                                    to={'/session/' + session?.id}
+                                    key={session?.id}
+                                  >
+                                    <div className="text-sm">
+                                      {session?.name}
+                                    </div>
+                                    <Separator className="my-2" />
+                                  </Link>
+                                ))}
+                              </div>
+                            </ScrollArea>
+                          </div>
+                        )}
                       </div>
                     </>
                   )}
@@ -612,6 +687,7 @@ export const LocationPage: React.FC<TLocationPageProps> = ({
                           rowSelection={itemsRowSelection}
                           setRowSelection={setItemsRowSelection}
                           buttonLabel="Choose Items"
+                          onlyKeyItems
                         />
                       </div>
                     </>

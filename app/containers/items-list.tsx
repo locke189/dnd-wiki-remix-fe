@@ -39,6 +39,8 @@ type TItemsListProps = {
   setRowSelection?: OnChangeFn<RowSelectionState>;
   buttonLabel?: string;
   noPagination?: boolean;
+  onlyTable?: boolean;
+  onlyKeyItems?: boolean;
 };
 
 function FilterDropdown({ column }: { column: Column<any, unknown> }) {
@@ -106,6 +108,8 @@ export const ItemsList: React.FC<TItemsListProps> = ({
   setRowSelection,
   buttonLabel,
   noPagination,
+  onlyTable = false,
+  onlyKeyItems = false,
 }) => {
   const [pagination, setPagination] = useState({
     pageIndex: 0, //initial page index
@@ -113,6 +117,15 @@ export const ItemsList: React.FC<TItemsListProps> = ({
   });
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  const filteredItems = useMemo(() => {
+    return items?.filter((item) => {
+      if (onlyKeyItems) {
+        return item.key_item;
+      }
+      return true;
+    });
+  }, [items, onlyKeyItems]);
 
   const columns: ColumnDef<TItem>[] = useMemo(
     () => [
@@ -300,7 +313,7 @@ export const ItemsList: React.FC<TItemsListProps> = ({
     });
 
   const table = useReactTable<TItem>({
-    data: items ?? [],
+    data: filteredItems ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     onRowSelectionChange: setRowSelection ?? (() => {}),
@@ -342,7 +355,7 @@ export const ItemsList: React.FC<TItemsListProps> = ({
       title="Choose Items"
       description="Select the Items you want to add"
       selectionLabel="Selected Items"
-      onlyTable
+      onlyTable={onlyTable}
       noPagination={noPagination}
       showVisibility
     />

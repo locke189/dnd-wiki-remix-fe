@@ -1,3 +1,4 @@
+import { TContentTodo } from '~/containers/content-todo-list';
 import { TItemRelationship } from './item';
 import { TNpcRelationship } from './npc';
 import { TPartyRelationship } from './party';
@@ -15,22 +16,6 @@ export type TLocationType =
   | 'temple_shrine'
   | 'dungeon_cave'
   | 'place_road';
-
-/*
-  [
-    {
-        "id": 1,
-        "campaigns_id": 2,
-        "Locations_id": 1
-    },
-    {
-        "id": 2,
-        "campaigns_id": 1,
-        "Locations_id": 1
-    }
-]
-
-  */
 
 export type TLocation = {
   id: number;
@@ -51,6 +36,10 @@ export type TLocation = {
   Parties: TPartyRelationship[];
   items: TItemRelationship[];
   favorite: boolean;
+  shop_type: string;
+  map_image: string;
+  dm_map_image: string;
+  rooms: TContentTodo[];
 };
 
 export type TLocationsRelationship = {
