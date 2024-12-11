@@ -3,6 +3,7 @@ import {
   Bot,
   Castle,
   ChevronDown,
+  Cog,
   DraftingCompass,
   Gamepad2,
   Handshake,
@@ -400,6 +401,20 @@ export const AppSidebarContent: React.FC = () => {
         <SidebarGroupLabel>DM Tools</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
+            <SidebarMenuItem className="pr-0 mr-0">
+              <Link to={`/campaign-manager/`}>
+                <SidebarMenuButton asChild>
+                  <div>
+                    <Cog />
+                    <span>Campaign Manager</span>
+                  </div>
+                </SidebarMenuButton>
+              </Link>
+
+              {/* <SidebarMenuAction>
+                  <ChevronDown /> <span className="sr-only">New </span>
+                </SidebarMenuAction> */}
+            </SidebarMenuItem>
             <SidebarMenuItem className="pr-0 mr-0">
               <Link to={`/session-manager/`}>
                 <SidebarMenuButton asChild>

@@ -26,6 +26,7 @@ import { client } from './lib/directus.server';
 import { TBastion } from './types/bastion';
 import { TParty } from './types/party';
 import { TItem } from './types/item';
+import { TCampaign } from './types/campaigns';
 
 export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -127,7 +128,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const campaigns = await client.request(
     readItems('campaigns', {
-      fields: ['name', 'id', 'status'],
+      fields: [
+        '*',
+        'sessions.*',
+        'players.*',
+        'Npcs.*',
+        'locations.*',
+        'Parties.*',
+        'Items.*',
+        'bastion.*',
+      ],
     })
   );
 
@@ -241,6 +251,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     bastions: TBastion[];
     parties: TParty[];
     items: TItem[];
+    campaigns: TCampaign[];
   } | null>();
   const [selectedCampaignId, setSelectedCampaignId] = useState<number>(2);
 
@@ -264,7 +275,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             players: data?.players ?? [],
             locations: data?.locations ?? [],
             images: data?.images ?? [],
-            campaigns: [],
+            campaigns: data?.campaigns ?? [],
             sessions: data?.sessions ?? [],
             bastions: data?.bastions ?? [],
             parties: data?.parties ?? [],

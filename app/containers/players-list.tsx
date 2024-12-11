@@ -15,6 +15,9 @@ type TPlayersListProps = {
   rowSelection: RowSelectionState;
   setRowSelection: OnChangeFn<RowSelectionState>;
   buttonLabel?: string;
+  noPagination?: boolean;
+  onlyTable?: boolean;
+  showVisibility?: boolean;
 };
 
 export const PlayersList: React.FC<TPlayersListProps> = ({
@@ -22,6 +25,9 @@ export const PlayersList: React.FC<TPlayersListProps> = ({
   rowSelection,
   setRowSelection,
   buttonLabel,
+  noPagination = false,
+  onlyTable = false,
+  showVisibility = false,
 }) => {
   const columns: ColumnDef<TPlayer>[] = [
     {
@@ -101,6 +107,9 @@ export const PlayersList: React.FC<TPlayersListProps> = ({
       title="Choose Players"
       description="Select players to add to the session"
       selectionLabel="Selected Players"
+      noPagination={noPagination}
+      onlyTable={onlyTable}
+      showVisibility={showVisibility}
     />
   );
 };

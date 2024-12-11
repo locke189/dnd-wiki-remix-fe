@@ -1,15 +1,26 @@
+import { TBastionRelationship } from './bastion';
+import { TItemRelationship } from './item';
+import { TLocationsRelationship } from './location';
+import { TNpc, TNpcRelationship } from './npc';
+import { TPartyRelationship } from './party';
+import { TPlayerRelationship } from './player';
+import { TSessionRelationship } from './session';
+
 export type TCampaign = {
   description: string;
   id: number;
   image: string | null;
-  locations: string[];
   master_notes: string | null;
   name: string;
-  players: string[];
+  sessions: TSessionRelationship[];
+  players: TPlayerRelationship[];
+  npcs: TNpcRelationship[];
+  locations: TLocationsRelationship[];
+  parties: TPartyRelationship[];
+  bastions: TBastionRelationship[];
+  Items: TItemRelationship[];
   quests: string[];
-  sessions: string[];
   status: string;
-  Items: string[];
 };
 
 export type TCampaignRelationships = {
