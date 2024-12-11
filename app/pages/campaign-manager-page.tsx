@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { Link, Outlet, useFetcher } from '@remix-run/react';
+import { Link, Outlet, useFetcher, useLoaderData } from '@remix-run/react';
 
 import { Card, CardContent, CardDescription } from '~/components/ui/card';
 import { EditableText } from '~/components/editable-text';
@@ -26,9 +26,12 @@ import { LocationsList } from '~/containers/locations-list';
 import { PlayersList } from '~/containers/players-list';
 import { Label } from '~/components/ui/label';
 import { debounce } from '~/lib/utils';
-import { TCampaign } from '~/types/campaigns';
+import { TCampaign, TCampaignDate } from '~/types/campaigns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { Updater, RowSelectionState } from '@tanstack/react-table';
+import { CustomDatePicker } from '~/components/custom-datepicker';
+import { useSave } from '~/hooks/useSave';
+import { DEFAULT_DATE } from '~/models/date';
 
 type TCampaignManagerPageProps = {
   isNew?: boolean;
@@ -38,7 +41,6 @@ export const CampaignManagerPage: React.FC<TCampaignManagerPageProps> = ({
   isNew = false,
 }) => {
   const [submitted, setSubmitted] = React.useState(false);
-
   const [isEditing, setIsEditing] = React.useState(isNew);
 
   const fetcher = useFetcher();
@@ -48,7 +50,16 @@ export const CampaignManagerPage: React.FC<TCampaignManagerPageProps> = ({
   const { locations, npcs, selectedCampaignId, players, campaigns } =
     appContext || {};
 
-  const campaign = campaigns.find((c) => c.id === selectedCampaignId);
+  const { campaign } = useLoaderData<{ campaign: TCampaign }>();
+
+  // const [date, setDate] = React.useState<TCampaignDate>(
+  //   campaign.date || {
+  //     month: 1,
+  //     year: 1578,
+  //     date: 1,
+  //     type: 'harptos',
+  //   }
+  // );
 
   console.log('campaign', campaigns, selectedCampaignId, campaign);
 
@@ -114,6 +125,8 @@ export const CampaignManagerPage: React.FC<TCampaignManagerPageProps> = ({
 
   // const debounceOnChange = debounce(onChange, 500);
 
+  const { onSave } = useSave();
+
   return (
     // navbar
     <>
@@ -160,7 +173,7 @@ export const CampaignManagerPage: React.FC<TCampaignManagerPageProps> = ({
 
           <div className="grid auto-rows-min gap-4 lg:grid-cols-12 grid-cols-8 mx-8 space-y-8">
             <main className="col-span-8 lg:col-span-12 mt-8 h-full">
-              <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-8 h-full">
+              <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min h-full">
                 <Tabs defaultValue="general" className="w-full">
                   <TabsList>
                     <TabsTrigger value="general">General</TabsTrigger>
@@ -173,7 +186,27 @@ export const CampaignManagerPage: React.FC<TCampaignManagerPageProps> = ({
                     <TabsTrigger value="items">Items</TabsTrigger>
                   </TabsList>
                   <TabsContent value="general">
-                    <p>General</p>
+                    <div className="grid grid-cols-12 gap-x-4">
+                      <div className="col-span-5">
+                        <Label>Campaign Start Date</Label>
+                        <CustomDatePicker
+                          date={campaign.start_date ?? DEFAULT_DATE}
+                          setDate={(date) => {
+                            onSave({ start_date: date });
+                          }}
+                        />
+                      </div>
+                      <div className="col-span-2"></div>
+                      <div className="col-span-5">
+                        <Label>Campaign Date</Label>
+                        <CustomDatePicker
+                          date={campaign.date ?? DEFAULT_DATE}
+                          setDate={(date) => {
+                            onSave({ date });
+                          }}
+                        />
+                      </div>
+                    </div>
                   </TabsContent>
                   <TabsContent value="sessions">
                     <p>Sessions</p>

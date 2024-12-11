@@ -1,10 +1,17 @@
 import { TBastionRelationship } from './bastion';
 import { TItemRelationship } from './item';
 import { TLocationsRelationship } from './location';
-import { TNpc, TNpcRelationship } from './npc';
+import { TNpcRelationship } from './npc';
 import { TPartyRelationship } from './party';
 import { TPlayerRelationship } from './player';
 import { TSessionRelationship } from './session';
+
+export type TCampaignDate = {
+  month: number;
+  year: number;
+  date: number;
+  type: 'harptos';
+};
 
 export type TCampaign = {
   description: string;
@@ -21,6 +28,8 @@ export type TCampaign = {
   Items: TItemRelationship[];
   quests: string[];
   status: string;
+  date: TCampaignDate;
+  start_date: TCampaignDate;
 };
 
 export type TCampaignRelationships = {
